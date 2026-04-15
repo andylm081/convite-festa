@@ -4,22 +4,17 @@ import { Emoji } from './Emoji';
 
 export function playAudio(src) {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    fetch(src)
-      .then(r => r.arrayBuffer())
-      .then(buf => ctx.decodeAudioData(buf))
-      .then(decoded => {
-        const source = ctx.createBufferSource();
-        const gain = ctx.createGain();
-        gain.gain.value = 0.55;
-        source.buffer = decoded;
-        source.connect(gain);
-        gain.connect(ctx.destination);
-        source.start(0);
-      })
-      .catch(() => { const a = new Audio(src); a.volume = 0.55; a.play().catch(() => {}); });
+    const audio = new Audio(src);
+    audio.volume = 0.65;
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        // Retry once after a tiny delay
+        setTimeout(() => { audio.play().catch(() => {}); }, 100);
+      });
+    }
   } catch (e) {
-    const a = new Audio(src); a.volume = 0.55; a.play().catch(() => {});
+    // silently fail
   }
 }
 

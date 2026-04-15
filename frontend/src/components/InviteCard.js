@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, ExternalLink } from 'lucide-react';
-import { Emoji, TwemojiText } from './Emoji';
+import { Emoji } from './Emoji';
 
 const CONFETTI_BG = 'https://images.unsplash.com/photo-1702311952079-7e34acc96888?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85';
 const STADIUM_BG = 'https://images.unsplash.com/photo-1706675780107-7c43cc487928?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85';
@@ -15,13 +15,14 @@ const fadeUp = {
 };
 
 // =============================================
-// SVG FOOTBALL JERSEY COMPONENT
-// Proper jersey silhouette: collar, shoulders, body, number on back, name above
+// FOOTBALL JERSEY SVG — V3
+// ClipPath constrains name+number inside jersey body
+// textLength forces name to always fit perfectly
 // =============================================
-function FootballJersey({ name, number, bodyColor, collarColor, textColor = 'white', index = 0, gradId }) {
-  const id = gradId || `grad-${number}`;
-  const shadowId = `shadow-${number}`;
-  const stripeId = `stripe-${number}`;
+function FootballJersey({ name, number, bodyColor, collarColor, numberColor = 'white', nameColor = 'white', index = 0, gradId }) {
+  const shineId = `shine-${gradId}`;
+  const clipId = `clip-${gradId}`;
+  const jerseyPath = "M 38,20 Q 75,3 112,20 L 148,44 L 126,62 L 112,62 L 110,158 Q 75,165 40,158 L 38,62 L 24,62 L 2,44 Z";
 
   return (
     <motion.div
@@ -34,158 +35,83 @@ function FootballJersey({ name, number, bodyColor, collarColor, textColor = 'whi
         xmlns="http://www.w3.org/2000/svg"
         width="150"
         height="172"
-        style={{ overflow: 'visible', filter: 'drop-shadow(0 8px 24px rgba(0,0,0,0.5))' }}
+        style={{ overflow: 'visible', filter: 'drop-shadow(0 10px 28px rgba(0,0,0,0.55))' }}
       >
         <defs>
-          {/* Jersey shine gradient */}
-          <linearGradient id={id} x1="0%" y1="0%" x2="60%" y2="100%">
+          <clipPath id={clipId}>
+            <path d={jerseyPath} />
+          </clipPath>
+          <linearGradient id={shineId} x1="0%" y1="0%" x2="65%" y2="100%">
             <stop offset="0%" stopColor="rgba(255,255,255,0.28)" />
-            <stop offset="45%" stopColor="rgba(255,255,255,0.06)" />
-            <stop offset="100%" stopColor="rgba(0,0,0,0.18)" />
-          </linearGradient>
-          {/* Stripe gradient */}
-          <linearGradient id={stripeId} x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="rgba(255,255,255,0)" />
-            <stop offset="50%" stopColor={collarColor} />
-            <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+            <stop offset="45%" stopColor="rgba(255,255,255,0.05)" />
+            <stop offset="100%" stopColor="rgba(0,0,0,0.2)" />
           </linearGradient>
         </defs>
 
-        {/* ---- DROP SHADOW ---- */}
-        <ellipse cx="75" cy="168" rx="56" ry="6" fill="rgba(0,0,0,0.35)" />
+        {/* Drop shadow */}
+        <ellipse cx="75" cy="168" rx="54" ry="6" fill="rgba(0,0,0,0.4)" />
 
-        {/* ---- JERSEY BODY ---- */}
-        {/*
-          Jersey (back view) shape:
-          - Round collar at top center (arc)
-          - Short sleeves/shoulder flaps
-          - Rectangular body
-          - Slightly curved hem
-        */}
-        <path
-          d="
-            M 40,20
-            Q 75,4 110,20
-            L 148,44
-            L 126,62
-            L 110,62
-            L 108,158
-            Q 75,164 42,158
-            L 40,62
-            L 24,62
-            L 2,44
-            Z
-          "
-          fill={bodyColor}
-        />
+        {/* Jersey body base */}
+        <path d={jerseyPath} fill={bodyColor} />
 
-        {/* ---- SHINE OVERLAY ---- */}
-        <path
-          d="
-            M 40,20
-            Q 75,4 110,20
-            L 148,44
-            L 126,62
-            L 110,62
-            L 108,158
-            Q 75,164 42,158
-            L 40,62
-            L 24,62
-            L 2,44
-            Z
-          "
-          fill={`url(#${id})`}
-        />
+        {/* === CLIPPED CONTENT: all inside jersey shape === */}
+        <g clipPath={`url(#${clipId})`}>
+          {/* Collar band */}
+          <path d="M 52,22 Q 75,40 98,22 L 98,18 Q 75,35 52,18 Z" fill={collarColor} opacity="0.9" />
 
-        {/* ---- COLLAR (round neck, contrasting color) ---- */}
-        <path
-          d="M 54,22 Q 75,40 96,22 Q 75,20 54,22 Z"
-          fill={collarColor}
-          opacity="0.9"
-        />
-        <path
-          d="M 54,22 Q 75,40 96,22"
-          fill="none"
-          stroke="rgba(255,255,255,0.4)"
-          strokeWidth="1.5"
-        />
+          {/* Shoulder accent */}
+          <path d="M 38,20 L 2,44 L 24,62 L 38,62 L 38,38 L 54,24 Z" fill="rgba(255,255,255,0.1)" />
+          <path d="M 112,20 L 148,44 L 126,62 L 112,62 L 112,38 L 96,24 Z" fill="rgba(255,255,255,0.1)" />
 
-        {/* ---- SHOULDER STRIPES (sleeve details) ---- */}
-        <path
-          d="M 40,20 L 2,44 L 24,62 L 40,62 L 40,36 L 56,24 Z"
-          fill="rgba(255,255,255,0.1)"
-        />
-        <path
-          d="M 110,20 L 148,44 L 126,62 L 110,62 L 110,36 L 94,24 Z"
-          fill="rgba(255,255,255,0.1)"
-        />
+          {/* Chest stripe */}
+          <rect x="38" y="64" width="74" height="14" fill={collarColor} opacity="0.85" />
+          <rect x="38" y="64" width="74" height="3" fill="rgba(255,255,255,0.4)" />
 
-        {/* ---- CHEST STRIPE (horizontal, like Brazil seleção) ---- */}
-        <rect
-          x="40" y="64" width="70" height="13" rx="1"
-          fill={collarColor}
-          opacity="0.75"
-        />
-        <rect
-          x="40" y="64" width="70" height="3" rx="1"
-          fill="rgba(255,255,255,0.3)"
-        />
+          {/* ---- NUMBER (large, dominant) ---- */}
+          {/* Number shadow */}
+          <text x="77" y="150"
+            textAnchor="middle"
+            fontFamily="'Bebas Neue','Impact','Arial Black',sans-serif"
+            fontSize="72" fontWeight="900"
+            fill="rgba(0,0,0,0.3)"
+          >{number}</text>
+          {/* Number main */}
+          <text x="75" y="148"
+            textAnchor="middle"
+            fontFamily="'Bebas Neue','Impact','Arial Black',sans-serif"
+            fontSize="70" fontWeight="900"
+            fill={numberColor}
+            stroke="rgba(0,0,0,0.25)" strokeWidth="1.5"
+          >{number}</text>
 
-        {/* ---- BACK NUMBER (large, authentic) ---- */}
-        {/* Shadow layer */}
-        <text
-          x="77"
-          y="148"
-          textAnchor="middle"
-          fontFamily="'Bebas Neue', 'Impact', 'Arial Narrow', sans-serif"
-          fontSize="76"
-          fontWeight="900"
-          fill="rgba(0,0,0,0.25)"
-          letterSpacing="-1"
-        >
-          {number}
-        </text>
-        {/* Main number */}
-        <text
-          x="75"
-          y="146"
-          textAnchor="middle"
-          fontFamily="'Bebas Neue', 'Impact', 'Arial Narrow', sans-serif"
-          fontSize="74"
-          fontWeight="900"
-          fill={textColor}
-          letterSpacing="-1"
-          style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}
-        >
-          {number}
-        </text>
+          {/* ---- NAME (above number, always fits) ---- */}
+          {/* Name shadow */}
+          <text x="76" y="99"
+            textAnchor="middle"
+            fontFamily="'Bebas Neue','Impact','Arial Black',sans-serif"
+            fontSize="17" fontWeight="900"
+            fill="rgba(0,0,0,0.45)"
+            textLength="66" lengthAdjust="spacingAndGlyphs"
+          >{name}</text>
+          {/* Name main */}
+          <text x="75" y="98"
+            textAnchor="middle"
+            fontFamily="'Bebas Neue','Impact','Arial Black',sans-serif"
+            fontSize="16" fontWeight="900"
+            fill={nameColor}
+            stroke="rgba(0,0,0,0.3)" strokeWidth="0.6"
+            textLength="66" lengthAdjust="spacingAndGlyphs"
+          >{name}</text>
 
-        {/* ---- PLAYER NAME (above number) ---- */}
-        <text
-          x="75"
-          y="100"
-          textAnchor="middle"
-          fontFamily="'Bebas Neue', 'Impact', 'Arial Narrow', sans-serif"
-          fontSize="15"
-          fontWeight="700"
-          fill={textColor}
-          letterSpacing="5"
-          opacity="0.95"
-        >
-          {name}
-        </text>
-        {/* Name underline */}
-        <line
-          x1="42" y1="104"
-          x2="108" y2="104"
-          stroke={textColor}
-          strokeWidth="1.5"
-          opacity="0.4"
-        />
+          {/* Name underline */}
+          <line x1="44" y1="102" x2="106" y2="102" stroke={nameColor} strokeWidth="1.5" opacity="0.5" />
+        </g>
 
-        {/* ---- SLEEVE BOTTOM EDGE ---- */}
-        <line x1="2" y1="44" x2="24" y2="62" stroke="rgba(0,0,0,0.15)" strokeWidth="1" />
-        <line x1="148" y1="44" x2="126" y2="62" stroke="rgba(0,0,0,0.15)" strokeWidth="1" />
+        {/* Shine overlay (not clipped so it covers full jersey incl. sleeves) */}
+        <path d={jerseyPath} fill={`url(#${shineId})`} />
+
+        {/* Collar border line */}
+        <path d="M 52,22 Q 75,40 98,22" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" />
       </svg>
     </motion.div>
   );
@@ -193,19 +119,11 @@ function FootballJersey({ name, number, bodyColor, collarColor, textColor = 'whi
 
 function InfoSticker({ emoji, label, value, variant = 'default', index = 0 }) {
   const variantClass = {
-    default: 'info-sticker',
-    yellow: 'info-sticker-yellow',
-    green: 'info-sticker-green',
-    blue: 'info-sticker-blue',
-    orange: 'info-sticker-orange',
+    default: 'info-sticker', yellow: 'info-sticker-yellow',
+    green: 'info-sticker-green', blue: 'info-sticker-blue', orange: 'info-sticker-orange',
   }[variant];
-
   return (
-    <motion.div
-      custom={index}
-      variants={fadeUp}
-      className={`${variantClass} px-4 py-3 flex items-start gap-3`}
-    >
+    <motion.div custom={index} variants={fadeUp} className={`${variantClass} px-4 py-3 flex items-start gap-3`}>
       <Emoji symbol={emoji} size="1.3em" style={{ marginTop: 2, flexShrink: 0 }} />
       <div>
         <p className="text-xs font-bold uppercase tracking-widest mb-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>{label}</p>
@@ -232,29 +150,34 @@ export default function InviteCard({ settings, guestName, guestStatus }) {
       animate="visible"
     >
       {/* ===== HERO ===== */}
-      <div className="invite-hero relative" style={{ minHeight: 220 }}>
+      <div className="invite-hero relative" style={{ minHeight: 200 }}>
         <div className="invite-hero-img" style={{ backgroundImage: `url(${CONFETTI_BG})` }} />
         <div className="invite-hero-overlay" />
         <div className="brazil-ribbon relative z-10" />
-        <div className="relative z-10 px-6 pt-5 pb-7 text-center">
-          <motion.div custom={0} variants={fadeUp} className="inline-flex items-center gap-2 mb-3">
-            <span
-              className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full"
-              style={{ background: 'rgba(255,215,0,0.15)', border: '1px solid rgba(255,215,0,0.35)', color: '#FFD700' }}
-            >
-              <Emoji symbol="⚽" size="14px" /> Copa do Mundo 2026
-            </span>
-          </motion.div>
 
-          <motion.h1 custom={1} variants={fadeUp} className="font-bebas leading-none mb-0.5"
-            style={{ color: '#FFD700', fontSize: 52, textShadow: '0 0 30px rgba(255,215,0,0.4)' }}
-          >Você foi</motion.h1>
-          <motion.h1 custom={2} variants={fadeUp} className="font-bebas leading-none"
-            style={{ color: '#FFD700', fontSize: 52, textShadow: '0 0 30px rgba(255,215,0,0.4)' }}
-          >Convocado!</motion.h1>
+        <div className="relative z-10 px-6 pt-6 pb-7 text-center">
+          {/* VOCÊ FOI CONVOCADO — no badge above */}
+          <motion.h1
+            custom={0}
+            variants={fadeUp}
+            className="font-bebas leading-none mb-0.5"
+            style={{ color: '#FFD700', fontSize: 54, textShadow: '0 0 30px rgba(255,215,0,0.45)' }}
+          >
+            Você foi
+          </motion.h1>
+          <motion.h1
+            custom={1}
+            variants={fadeUp}
+            className="font-bebas leading-none"
+            style={{ color: '#FFD700', fontSize: 54, textShadow: '0 0 30px rgba(255,215,0,0.45)' }}
+          >
+            Convocado!
+          </motion.h1>
 
           {guestName && (
-            <motion.div custom={3} variants={fadeUp}
+            <motion.div
+              custom={2}
+              variants={fadeUp}
               className="mt-3 inline-block px-4 py-1.5 rounded-full text-sm font-semibold"
               style={{ background: 'rgba(0,200,83,0.2)', border: '1px solid rgba(0,200,83,0.4)', color: '#69F0AE' }}
             >
@@ -267,7 +190,7 @@ export default function InviteCard({ settings, guestName, guestStatus }) {
 
       {/* ===== FOOTBALL JERSEYS ===== */}
       <motion.div
-        custom={4}
+        custom={3}
         variants={fadeUp}
         className="px-5 py-5"
         style={{
@@ -276,15 +199,16 @@ export default function InviteCard({ settings, guestName, guestStatus }) {
         }}
       >
         <div className="flex items-center justify-center gap-3">
-          {/* Anderson #24 — Yellow jersey, green collar/stripe */}
+          {/* Anderson #24 — Yellow jersey (home), green collar */}
           <FootballJersey
             name="ANDERSON"
             number="24"
             bodyColor="#FFD700"
-            collarColor="#006400"
-            textColor="#0a1f00"
-            index={4}
-            gradId="grad-anderson"
+            collarColor="#005500"
+            numberColor="#003300"
+            nameColor="#003300"
+            index={3}
+            gradId="anderson"
           />
 
           {/* Divider */}
@@ -295,15 +219,16 @@ export default function InviteCard({ settings, guestName, guestStatus }) {
             <span className="text-xs font-bold" style={{ color: 'rgba(255,255,255,0.3)' }}>&</span>
           </div>
 
-          {/* Arthur #23 — Green jersey, yellow collar/stripe */}
+          {/* Arthur #23 — Green jersey (away), yellow collar */}
           <FootballJersey
             name="ARTHUR"
             number="23"
             bodyColor="#006400"
             collarColor="#FFD700"
-            textColor="white"
-            index={5}
-            gradId="grad-arthur"
+            numberColor="white"
+            nameColor="white"
+            index={4}
+            gradId="arthur"
           />
         </div>
 
@@ -314,7 +239,7 @@ export default function InviteCard({ settings, guestName, guestStatus }) {
       </motion.div>
 
       {/* ===== DATE / STADIUM ===== */}
-      <motion.div custom={6} variants={fadeUp} className="px-5 pt-4">
+      <motion.div custom={5} variants={fadeUp} className="px-5 pt-4">
         <div className="rounded-2xl overflow-hidden" style={{
           backgroundImage: `url(${STADIUM_BG})`, backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative'
         }}>
@@ -338,13 +263,13 @@ export default function InviteCard({ settings, guestName, guestStatus }) {
 
       {/* ===== INFO STICKERS ===== */}
       <div className="px-5 pt-4 pb-2 grid grid-cols-1 gap-3">
-        <InfoSticker emoji="👕" label="Traje" value={settings.dress_code_text} variant="yellow" index={7} />
-        <InfoSticker emoji="🎤" label="Energia de torcida" value={settings.party_items_text} variant="green" index={8} />
-        <InfoSticker emoji="🍺" label="Bebidas" value={settings.drinks_text} variant="blue" index={9} />
+        <InfoSticker emoji="👕" label="Traje" value={settings.dress_code_text} variant="yellow" index={6} />
+        <InfoSticker emoji="🎤" label="Energia de torcida" value={settings.party_items_text} variant="green" index={7} />
+        <InfoSticker emoji="🍺" label="Bebidas" value={settings.drinks_text} variant="blue" index={8} />
       </div>
 
       {/* ===== ADDRESS ===== */}
-      <motion.div custom={10} variants={fadeUp} className="px-5 pb-5 pt-2">
+      <motion.div custom={9} variants={fadeUp} className="px-5 pb-5 pt-2">
         <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
           <div className="flex items-start gap-3 mb-3">
             <Emoji symbol="📍" size="20px" style={{ marginTop: 2 }} />
@@ -368,15 +293,15 @@ export default function InviteCard({ settings, guestName, guestStatus }) {
         </div>
       </motion.div>
 
-      {/* ===== STATUS CHIP ===== */}
+      {/* Status chip */}
       {guestStatus && guestStatus !== 'pending' && (
-        <motion.div custom={11} variants={fadeUp} className="px-5 pb-5">
+        <motion.div custom={10} variants={fadeUp} className="px-5 pb-5">
           <div className={`text-center text-sm font-bold py-3 rounded-2xl ${
             guestStatus === 'confirmed'
               ? 'bg-green-900/40 text-green-400 border border-green-700/40'
               : 'bg-red-900/40 text-red-400 border border-red-700/40'
           }`}>
-            {guestStatus === 'confirmed' ? '\u2713 Presença confirmada' : '\u2717 Presença cancelada'}
+            {guestStatus === 'confirmed' ? '✓ Presença confirmada 🎉' : '✗ Presença cancelada'}
           </div>
         </motion.div>
       )}

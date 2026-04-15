@@ -28,7 +28,7 @@ app.add_middleware(
 
 # DB
 MONGO_URL = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
-DB_NAME = os.environ.get("DB_NAME", "convite_copa")
+DB_NAME = os.environ.get("DB_NAME", "test_database")
 client = AsyncIOMotorClient(MONGO_URL)
 db = client[DB_NAME]
 
@@ -164,7 +164,7 @@ async def startup_event():
     if not existing_admin:
         await db.admin_users.insert_one({
             "email": "admin@festa.com",
-            "hashed_password": get_password_hash("festa2024"),
+            "hashed_password": get_password_hash("festa2026"),
             "created_at": datetime.utcnow()
         })
         print("Admin seeded: admin@festa.com / festa2024")

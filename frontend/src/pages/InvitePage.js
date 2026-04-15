@@ -5,7 +5,7 @@ import axios from 'axios';
 import EnvelopeAnimation from '../components/EnvelopeAnimation';
 import InviteCard from '../components/InviteCard';
 import RSVPModal from '../components/RSVPModal';
-import { Check, UserX, Trophy } from 'lucide-react';
+import { Check, X as CancelIcon } from 'lucide-react';
 
 const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
 
@@ -15,7 +15,7 @@ export default function InvitePage() {
   const [guest, setGuest] = useState(null);
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [envelopeOpened, setEnvelopeOpened] = useState(false);
-  const [modal, setModal] = useState(null); // 'confirm' | 'cancel' | null
+  const [modal, setModal] = useState(null);
   const [guestStatus, setGuestStatus] = useState(null);
 
   useEffect(() => {
@@ -38,106 +38,148 @@ export default function InvitePage() {
 
   const handleRsvpSuccess = (newStatus) => {
     setGuestStatus(newStatus);
-    setTimeout(() => setModal(null), 3000);
+    setTimeout(() => setModal(null), 3500);
   };
 
   if (loadingSettings) {
     return (
-      <div className="min-h-screen invite-bg flex items-center justify-center">
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: '#0a140d' }}
+      >
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-          className="w-10 h-10 border-3 border-green-700 border-t-transparent rounded-full"
-          style={{ borderWidth: 3 }}
+          className="w-10 h-10 rounded-full"
+          style={{ border: '3px solid #FFD700', borderTopColor: 'transparent' }}
         />
       </div>
     );
   }
 
   return (
-    <div className="theme-invite invite-bg min-h-screen">
-      {/* Meta tags via document title */}
-      <title>Convite - Anderson & Arthur</title>
-
-      {/* Top ribbon */}
-      <div className="copa-ribbon" />
-
-      {/* Main content */}
-      <div className="flex flex-col items-center px-4 pt-6 pb-32">
-        {/* Header chip */}
-        <motion.div
-          initial={{ opacity: 0, y: -12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="flex items-center gap-2 mb-6"
-        >
-          <div className="flex items-center gap-1.5 bg-green-800 text-yellow-300 text-xs font-semibold px-3 py-1.5 rounded-full">
-            <Trophy size={12} />
-            Copa do Mundo 2026
-          </div>
-          {settings?.event_date && (
-            <span className="text-xs text-amber-700 font-medium bg-amber-50 border border-amber-200 px-2.5 py-1.5 rounded-full">
-              {settings.event_date}
-            </span>
-          )}
-        </motion.div>
-
-        {/* Envelope stage */}
-        <AnimatePresence>
-          {!envelopeOpened && (
+    <div
+      className="theme-invite party-bg min-h-screen"
+      style={{ overflowX: 'hidden' }}
+    >
+      {/* ===== PRE-OPEN STATE ===== */}
+      <AnimatePresence>
+        {!envelopeOpened && (
+          <motion.div
+            key="sealed-view"
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.4 }}
+            className="min-h-screen flex flex-col items-center justify-center px-4 py-10"
+          >
+            {/* Top header */}
             <motion.div
-              key="envelope"
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: -16 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20, scale: 0.9 }}
-              transition={{ type: 'spring', stiffness: 240, damping: 26, delay: 0.2 }}
-              className="w-full flex flex-col items-center mb-6"
+              transition={{ delay: 0.1 }}
+              className="text-center mb-8"
             >
-              {/* Stadium background blur */}
-              <div
-                className="absolute inset-x-0 top-0 h-96 opacity-10 pointer-events-none"
-                style={{
-                  backgroundImage: 'url(https://images.unsplash.com/photo-1571190894029-caa26b1f4c09?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85)',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  filter: 'blur(4px)',
-                }}
-              />
-
-              {/* Guest greeting */}
-              {guest && (
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-center text-green-800 font-medium text-sm mb-5 bg-green-50 border border-green-200 px-4 py-2 rounded-full"
-                >
-                  Olá, <strong>{guest.full_name}</strong>! Seu convite especial está aqui ↓
-                </motion.p>
-              )}
-
-              <EnvelopeAnimation onOpen={() => setEnvelopeOpened(true)} isOpen={false} />
-
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.6 }}
-                transition={{ delay: 1 }}
-                className="text-xs text-gray-500 mt-10 text-center"
+              <p
+                className="font-bebas text-4xl tracking-widest mb-1"
+                style={{ color: '#FFD700', textShadow: '0 0 30px rgba(255,215,0,0.3)' }}
               >
-                Você tem um convite especial esperando por você
-              </motion.p>
+                FESTA & COPA 2026
+              </p>
+              <p className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                Anderson & Arthur te convidam
+              </p>
             </motion.div>
-          )}
-        </AnimatePresence>
 
-        {/* Invite card — after envelope opens */}
-        <AnimatePresence>
-          {envelopeOpened && (
+            {/* Sealed card */}
+            <EnvelopeAnimation
+              onOpen={() => setEnvelopeOpened(true)}
+              isOpen={false}
+            />
+
+            {/* Date pill */}
             <motion.div
-              key="invite-content"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="mt-8 flex items-center gap-3"
+            >
+              <div
+                className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold"
+                style={{
+                  background: 'rgba(255,215,0,0.1)',
+                  border: '1px solid rgba(255,215,0,0.25)',
+                  color: '#FFD700'
+                }}
+              >
+                <span>&#128197;</span>
+                <span>13 de Junho de 2026</span>
+              </div>
+              <div
+                className="px-3 py-2 rounded-full text-xs font-bold"
+                style={{
+                  background: 'rgba(0,200,83,0.1)',
+                  border: '1px solid rgba(0,200,83,0.25)',
+                  color: '#69F0AE'
+                }}
+              >
+                🎉
+              </div>
+            </motion.div>
+
+            {/* Floating emoji decorations */}
+            <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+              {['⚽', '🏆', '🎉', '🇬🇧', '🎊', '✨', '🇧🇷'].map((em, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute text-2xl opacity-10"
+                  style={{
+                    left: `${10 + i * 13}%`,
+                    top: `${20 + (i % 3) * 25}%`,
+                  }}
+                  animate={{
+                    y: [0, -15, 0],
+                    rotate: [0, 10, -10, 0],
+                    opacity: [0.08, 0.18, 0.08],
+                  }}
+                  transition={{
+                    repeat: Infinity,
+                    duration: 4 + i * 0.5,
+                    delay: i * 0.4,
+                  }}
+                >
+                  {em}
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ===== OPENED STATE: STORY CARD ===== */}
+      <AnimatePresence>
+        {envelopeOpened && (
+          <motion.div
+            key="opened-view"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="min-h-screen flex flex-col items-center px-4 pt-6 pb-32"
+          >
+            {/* Subtle top text */}
+            <motion.p
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 0.5, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-xs font-medium mb-4 text-center"
+              style={{ color: 'rgba(255,255,255,0.4)' }}
+            >
+              ✨ Seu convite especial está abaixo ✨
+            </motion.p>
+
+            {/* Story Card */}
+            <motion.div
               initial={{ opacity: 0, y: 40, scale: 0.94 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ type: 'spring', stiffness: 240, damping: 26, delay: 0.1 }}
-              className="w-full max-w-[380px]"
+              transition={{ type: 'spring', stiffness: 220, damping: 26, delay: 0.1 }}
+              className="w-full max-w-[400px]"
             >
               <InviteCard
                 settings={settings}
@@ -145,45 +187,65 @@ export default function InvitePage() {
                 guestStatus={guestStatus}
               />
             </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Sticky CTA Bar — only after envelope opens */}
+      {/* ===== STICKY CTA ===== */}
       <AnimatePresence>
         {envelopeOpened && (
           <motion.div
             initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 280, damping: 30, delay: 0.3 }}
-            className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-100 px-4 py-3 shadow-lg"
+            transition={{ type: 'spring', stiffness: 280, damping: 30, delay: 0.4 }}
+            className="fixed bottom-0 left-0 right-0 z-40 px-4 pb-4"
+            style={{
+              background: 'linear-gradient(180deg, transparent 0%, rgba(10,20,13,0.97) 25%)',
+              paddingTop: '1.5rem'
+            }}
           >
-            <div className="grid grid-cols-2 gap-3 max-w-[420px] mx-auto">
+            <div className="max-w-[420px] mx-auto space-y-2">
+              {/* Confirm - full width, dominant */}
               <button
                 data-testid="rsvp-confirm-button"
                 onClick={() => setModal('confirm')}
                 disabled={guestStatus === 'confirmed'}
-                className="h-12 rounded-xl bg-green-800 text-white font-semibold text-sm hover:bg-green-700 transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md"
+                className="w-full h-14 rounded-2xl font-bold text-base transition-all disabled:opacity-60 flex items-center justify-center gap-2 shadow-lg"
+                style={{
+                  background: guestStatus === 'confirmed'
+                    ? 'rgba(0,200,83,0.2)'
+                    : 'linear-gradient(135deg, #00C853, #006400)',
+                  color: guestStatus === 'confirmed' ? '#69F0AE' : 'white',
+                  border: guestStatus === 'confirmed' ? '1px solid rgba(0,200,83,0.4)' : 'none',
+                  boxShadow: guestStatus !== 'confirmed' ? '0 4px 24px rgba(0,200,83,0.4)' : 'none',
+                }}
               >
-                <Check size={16} />
-                {guestStatus === 'confirmed' ? 'Confirmado!' : 'Confirmar'}
+                <Check size={17} />
+                {guestStatus === 'confirmed' ? '✓ Presença confirmada!' : '🎉 Confirmar presença'}
               </button>
+
+              {/* Cancel - secondary, subtle */}
               <button
                 data-testid="rsvp-cancel-button"
                 onClick={() => setModal('cancel')}
                 disabled={guestStatus === 'cancelled'}
-                className="h-12 rounded-xl bg-white text-gray-700 font-semibold text-sm border border-gray-200 hover:bg-gray-50 transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full h-10 rounded-xl font-medium text-xs transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+                style={{
+                  background: 'transparent',
+                  color: guestStatus === 'cancelled' ? 'rgba(255,100,100,0.6)' : 'rgba(255,255,255,0.38)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                }}
               >
-                <UserX size={16} />
-                {guestStatus === 'cancelled' ? 'Cancelado' : 'Cancelar'}
+                <CancelIcon size={12} />
+                {guestStatus === 'cancelled' ? 'Presença cancelada' : 'Não vou poder comparecer'}
               </button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* RSVP Modal */}
+      {/* ===== RSVP MODAL ===== */}
       <AnimatePresence>
         {modal && (
           <RSVPModal

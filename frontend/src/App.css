@@ -1,45 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,700;1,6..96,400&family=Manrope:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@300;400;500;600;700;800&family=Pacifico&display=swap');
 
-/* ============ THEME: INVITE ============ */
-.theme-invite {
-  --bg: #FAF8F0;
-  --fg: #0f1a12;
-  --card: #FEFCF5;
-  --primary: #006400;
-  --primary-fg: #ffffff;
-  --accent: #FFD700;
-  --accent-fg: #0f1a12;
-  --blue: #003087;
-  --gold: #D8B55B;
-  --muted: #F0ECE0;
-  --muted-fg: #4a5e52;
-  --border: #E5DFC8;
-  --success: #006400;
-  --danger: #c0392b;
-}
-
-/* ============ THEME: ADMIN ============ */
-.theme-admin {
-  --background: #ffffff;
-  --foreground: #1a2332;
-  --card: #ffffff;
-  --card-foreground: #1a2332;
-  --primary: #006400;
-  --primary-foreground: #ffffff;
-  --secondary: #f0f4f8;
-  --muted: #f0f4f8;
-  --muted-foreground: #6b7a90;
-  --border: #e2e8f0;
-  --ring: #006400;
-  --success-bg: #f0fdf4;
-  --success-fg: #006400;
-  --warning-bg: #fffbeb;
-  --warning-fg: #d97706;
-  --danger-bg: #fef2f2;
-  --danger-fg: #dc2626;
-}
-
-* {
+/* ============ RESET ============ */
+*, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -49,117 +11,239 @@ body {
   font-family: 'Manrope', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
-.font-display {
-  font-family: 'Bodoni Moda', serif;
+/* ============ FONTS ============ */
+.font-bebas {
+  font-family: 'Bebas Neue', cursive;
+  letter-spacing: 0.04em;
+}
+.font-pacifico {
+  font-family: 'Pacifico', cursive;
 }
 
-/* Invite background with subtle gradients */
-.invite-bg {
-  background-color: #FAF8F0;
+/* ============ INVITE THEME ============ */
+.theme-invite {
+  --party-bg: #0a140d;
+  --party-bg2: #0f1f14;
+  --yellow: #FFD700;
+  --yellow-hot: #FFC200;
+  --green-bright: #00C853;
+  --green-dark: #006400;
+  --blue: #003087;
+  --white: #FFFFFF;
+  --orange: #FF6B00;
+  --card-bg: #0e1a12;
+}
+
+/* ============ ADMIN THEME ============ */
+.theme-admin {
+  --background: #f8fafc;
+  --foreground: #1a2332;
+  --card: #ffffff;
+  --primary: #006400;
+  --primary-foreground: #ffffff;
+  --muted: #f0f4f8;
+  --muted-foreground: #6b7a90;
+  --border: #e2e8f0;
+  --ring: #006400;
+}
+
+/* ============ PARTY BACKGROUND ============ */
+.party-bg {
+  background: #0a140d;
   background-image:
-    radial-gradient(600px circle at 20% 10%, rgba(255, 204, 0, 0.15), transparent 55%),
-    radial-gradient(700px circle at 80% 0%, rgba(0, 165, 80, 0.12), transparent 60%),
-    radial-gradient(500px circle at 50% 100%, rgba(0, 48, 135, 0.08), transparent 60%);
+    radial-gradient(ellipse at 20% 0%, rgba(0,200,83,0.18) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 0%, rgba(255,215,0,0.15) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 100%, rgba(0,48,135,0.2) 0%, transparent 60%);
   min-height: 100vh;
 }
 
-/* Envelope styles */
-.envelope-wrapper {
-  perspective: 1000px;
+/* ============ CONFETTI PARTICLES ============ */
+@keyframes confetti-fall {
+  0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+@keyframes confetti-fall-slow {
+  0% { transform: translateY(-20px) rotate(0deg) scaleX(1); opacity: 0.9; }
+  50% { transform: translateY(55vh) rotate(-270deg) scaleX(-1); }
+  100% { transform: translateY(110vh) rotate(-540deg) scaleX(-1); opacity: 0; }
+}
+.confetti-piece {
+  position: fixed;
+  width: 10px;
+  height: 6px;
+  opacity: 0;
+  animation: confetti-fall linear infinite;
+  pointer-events: none;
+  z-index: 1;
+  border-radius: 1px;
 }
 
-.wax-seal {
-  cursor: pointer;
-  transition: transform 0.15s ease;
-}
-.wax-seal:hover {
-  transform: scale(1.05);
-}
-.wax-seal:active {
-  transform: scale(0.96);
-}
-
-/* Invite card paper feel */
-.invite-paper {
-  background: #FEFCF5;
+/* ============ SEALED CARD ============ */
+.sealed-card {
+  background: linear-gradient(145deg, #0f2018 0%, #1a3520 50%, #0f2018 100%);
+  border: 2px solid rgba(255, 215, 0, 0.35);
+  border-radius: 24px;
   box-shadow:
-    0 2px 4px rgba(0,0,0,0.06),
-    0 8px 24px rgba(0,0,0,0.10),
-    0 0 0 1px rgba(216,181,91,0.25);
+    0 0 0 1px rgba(255,215,0,0.1),
+    0 8px 40px rgba(0,0,0,0.6),
+    0 0 80px rgba(0,200,83,0.08);
+  position: relative;
+  overflow: hidden;
+}
+.sealed-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,215,0,0.04) 0%, transparent 50%, rgba(0,200,83,0.04) 100%);
+  pointer-events: none;
 }
 
-/* Status badge */
-.badge-confirmed {
-  background: #f0fdf4;
-  color: #006400;
-  border: 1px solid #bbf7d0;
+/* ============ RIBBON STRIPE ============ */
+.brazil-ribbon {
+  height: 6px;
+  background: linear-gradient(90deg, #009c3b 33.3%, #ffdf00 33.3% 66.6%, #002776 66.6%);
 }
-.badge-cancelled {
-  background: #fef2f2;
-  color: #dc2626;
-  border: 1px solid #fecaca;
-}
-.badge-pending {
-  background: #fffbeb;
-  color: #d97706;
-  border: 1px solid #fed7aa;
+.brazil-ribbon-vertical {
+  width: 6px;
+  background: linear-gradient(180deg, #009c3b 33.3%, #ffdf00 33.3% 66.6%, #002776 66.6%);
 }
 
-/* Admin sidebar */
+/* ============ STORY CARD ============ */
+.story-card {
+  background: linear-gradient(170deg, #0d1f14 0%, #0a1a10 60%, #071510 100%);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,215,0,0.12);
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* ============ HERO SECTION (story card) ============ */
+.invite-hero {
+  position: relative;
+  background: linear-gradient(180deg, #0a1a0e 0%, #143020 100%);
+  overflow: hidden;
+}
+.invite-hero-img {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.18;
+  filter: saturate(1.5);
+}
+.invite-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(10,20,14,0.3) 0%, rgba(10,20,14,0.85) 100%);
+}
+
+/* ============ YELLOW GLOW ============ */
+.text-glow-yellow {
+  text-shadow: 0 0 20px rgba(255,215,0,0.4), 0 0 60px rgba(255,215,0,0.2);
+}
+.text-glow-white {
+  text-shadow: 0 2px 20px rgba(255,255,255,0.2);
+}
+
+/* ============ INFO STICKER ============ */
+.info-sticker {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 16px;
+  backdrop-filter: blur(4px);
+}
+.info-sticker-yellow {
+  background: rgba(255,215,0,0.1);
+  border: 1px solid rgba(255,215,0,0.25);
+  border-radius: 16px;
+}
+.info-sticker-green {
+  background: rgba(0,200,83,0.1);
+  border: 1px solid rgba(0,200,83,0.25);
+  border-radius: 16px;
+}
+.info-sticker-blue {
+  background: rgba(0,48,135,0.2);
+  border: 1px solid rgba(0,100,255,0.25);
+  border-radius: 16px;
+}
+.info-sticker-orange {
+  background: rgba(255,107,0,0.12);
+  border: 1px solid rgba(255,107,0,0.3);
+  border-radius: 16px;
+}
+
+/* ============ PULSE RING ============ */
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 0.7; }
+  70% { transform: scale(1.25); opacity: 0; }
+  100% { transform: scale(1.25); opacity: 0; }
+}
+.pulse-ring::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,215,0,0.5);
+  animation: pulse-ring 2s ease-out infinite;
+}
+
+/* ============ SHIMMER BUTTON ============ */
+@keyframes shimmer-slide {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.btn-shimmer {
+  background: linear-gradient(90deg,
+    #FFD700 0%,
+    #FFC200 40%,
+    #ffe566 50%,
+    #FFC200 60%,
+    #FFD700 100%
+  );
+  background-size: 200% auto;
+  animation: shimmer-slide 3s linear infinite;
+}
+
+/* ============ FLOATING ANIMATION ============ */
+@keyframes float-up {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.float {
+  animation: float-up 3s ease-in-out infinite;
+}
+
+/* ============ GLOW PULSE ============ */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(255,215,0,0.3), 0 0 40px rgba(255,215,0,0.1); }
+  50% { box-shadow: 0 0 35px rgba(255,215,0,0.5), 0 0 70px rgba(255,215,0,0.2); }
+}
+.glow-pulse {
+  animation: glow-pulse 2.5s ease-in-out infinite;
+}
+
+/* ============ ADMIN SIDEBAR ============ */
 .admin-sidebar {
   background: linear-gradient(180deg, #003a1a 0%, #002612 100%);
 }
 
-/* Scrollbar thin */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(0,100,0,0.3);
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(0,100,0,0.5);
-}
+/* ============ STATUS BADGES ============ */
+.badge-confirmed { background: #f0fdf4; color: #006400; border: 1px solid #bbf7d0; }
+.badge-cancelled { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+.badge-pending { background: #fffbeb; color: #d97706; border: 1px solid #fed7aa; }
 
-/* Bottom padding for sticky bar */
-.pb-sticky {
-  padding-bottom: 5.5rem;
-}
-
-/* Shimmer on wax seal */
-@keyframes shimmer {
-  0% { opacity: 0.7; }
-  50% { opacity: 1; }
-  100% { opacity: 0.7; }
-}
-.shimmer {
-  animation: shimmer 2.5s ease-in-out infinite;
-}
-
-/* Confetti canvas */
-#confetti-canvas {
-  pointer-events: none;
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  z-index: 9999;
-}
-
-/* Ribbon stripe */
-.copa-ribbon {
-  background: linear-gradient(90deg, #009c3b 33.3%, #ffdf00 33.3% 66.6%, #002776 66.6%);
-  height: 4px;
-  width: 100%;
-}
-
-/* Green gradient header */
+/* ============ GREEN HEADER ============ */
 .green-header {
   background: linear-gradient(135deg, #003a1a 0%, #006400 50%, #009c3b 100%);
 }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,100,0,0.3); border-radius: 3px; }

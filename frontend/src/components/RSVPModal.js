@@ -10,14 +10,22 @@ const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
 
 function fireConfetti() {
   confetti({
-    particleCount: 80,
-    spread: 60,
-    startVelocity: 28,
-    gravity: 0.9,
-    ticks: 200,
-    colors: ['#006400', '#00A550', '#FFD700', '#003087', '#FFFFFF'],
-    origin: { x: 0.5, y: 0.6 }
+    particleCount: 120,
+    spread: 70,
+    startVelocity: 32,
+    gravity: 0.85,
+    ticks: 220,
+    colors: ['#006400', '#00C853', '#FFD700', '#003087', '#FFFFFF', '#FF6B00'],
+    origin: { x: 0.5, y: 0.55 }
   });
+  setTimeout(() => {
+    confetti({ particleCount: 60, spread: 50, startVelocity: 20,
+      colors: ['#FFD700', '#00C853', '#FF6B00'],
+      origin: { x: 0.3, y: 0.7 } });
+    confetti({ particleCount: 60, spread: 50, startVelocity: 20,
+      colors: ['#FFD700', '#00C853', '#FF6B00'],
+      origin: { x: 0.7, y: 0.7 } });
+  }, 250);
 }
 
 export default function RSVPModal({ type, slug, guestName, settings, onClose, onSuccess }) {
@@ -47,7 +55,7 @@ export default function RSVPModal({ type, slug, guestName, settings, onClose, on
       }
       onSuccess && onSuccess(isConfirm ? 'confirmed' : 'cancelled');
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Erro ao registrar resposta. Tente novamente.');
+      toast.error(err.response?.data?.detail || 'Erro ao registrar resposta.');
     } finally {
       setLoading(false);
     }
@@ -60,40 +68,52 @@ export default function RSVPModal({ type, slug, guestName, settings, onClose, on
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      {/* Overlay */}
       <motion.div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        className="absolute inset-0"
+        style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}
         onClick={!done ? onClose : undefined}
       />
 
-      {/* Modal */}
       <motion.div
-        className="relative w-full max-w-sm bg-white rounded-2xl overflow-hidden shadow-2xl"
+        className="relative w-full max-w-sm overflow-hidden"
+        style={{
+          background: 'linear-gradient(170deg, #0f2018 0%, #0a1a10 100%)',
+          border: isConfirm ? '1.5px solid rgba(0,200,83,0.35)' : '1.5px solid rgba(255,255,255,0.15)',
+          borderRadius: 24,
+          boxShadow: '0 24px 60px rgba(0,0,0,0.7)'
+        }}
         initial={{ y: 60, opacity: 0, scale: 0.96 }}
         animate={{ y: 0, opacity: 1, scale: 1 }}
         exit={{ y: 40, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
       >
-        {/* Header strip */}
-        <div className={`px-5 py-4 ${isConfirm ? 'bg-green-800' : 'bg-gray-800'}`}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {isConfirm
-                ? <Check className="text-green-300" size={20} />
-                : <UserX className="text-gray-300" size={20} />
-              }
-              <h2 className="text-white font-semibold text-base">
-                {isConfirm ? 'Confirmar presença' : 'Cancelar presença'}
-              </h2>
-            </div>
-            <button
-              onClick={onClose}
-              className="text-white/70 hover:text-white transition-colors p-1"
-              data-testid="rsvp-modal-close"
-            >
-              <X size={18} />
-            </button>
+        {/* Brazil ribbon */}
+        <div className="brazil-ribbon" />
+
+        {/* Header */}
+        <div
+          className="px-5 py-4 flex items-center justify-between"
+          style={{
+            background: isConfirm
+              ? 'linear-gradient(90deg, rgba(0,100,0,0.5), rgba(0,200,83,0.2))'
+              : 'rgba(255,255,255,0.05)',
+            borderBottom: '1px solid rgba(255,255,255,0.08)'
+          }}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">{isConfirm ? '🎉' : '😔'}</span>
+            <h2 className="font-bold text-base" style={{ color: isConfirm ? '#69F0AE' : 'rgba(255,255,255,0.85)' }}>
+              {isConfirm ? 'Confirmar presença' : 'Cancelar presença'}
+            </h2>
           </div>
+          <button
+            onClick={onClose}
+            className="p-1 rounded-lg transition-colors"
+            style={{ color: 'rgba(255,255,255,0.5)' }}
+            data-testid="rsvp-modal-close"
+          >
+            <X size={18} />
+          </button>
         </div>
 
         <div className="p-5">
@@ -108,8 +128,7 @@ export default function RSVPModal({ type, slug, guestName, settings, onClose, on
               >
                 {!slug ? (
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                      <User size={14} className="inline mr-1" />
+                    <label className="block text-sm font-semibold mb-2" style={{ color: 'rgba(255,255,255,0.7)' }}>
                       Seu nome ou apelido
                     </label>
                     <input
@@ -117,42 +136,56 @@ export default function RSVPModal({ type, slug, guestName, settings, onClose, on
                       value={name}
                       onChange={e => setName(e.target.value)}
                       placeholder="Como você quer ser chamado?"
-                      className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-700 focus:border-transparent"
+                      className="w-full px-4 py-3 rounded-xl text-sm font-medium focus:outline-none"
+                      style={{
+                        background: 'rgba(255,255,255,0.07)',
+                        border: '1px solid rgba(255,255,255,0.15)',
+                        color: 'white',
+                        caretColor: '#FFD700'
+                      }}
                       required
                       data-testid="rsvp-name-input"
                     />
                   </div>
                 ) : (
-                  <div className="mb-4 p-3 bg-green-50 rounded-xl border border-green-100">
-                    <p className="text-sm text-green-800">
-                      <span className="font-semibold">Convidado:</span> {guestName}
+                  <div
+                    className="mb-4 p-3 rounded-xl flex items-center gap-2"
+                    style={{ background: 'rgba(0,200,83,0.1)', border: '1px solid rgba(0,200,83,0.25)' }}
+                  >
+                    <span className="text-lg">👋</span>
+                    <p className="text-sm font-semibold" style={{ color: '#69F0AE' }}>
+                      {guestName}
                     </p>
                   </div>
                 )}
 
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-sm mb-4" style={{ color: 'rgba(255,255,255,0.55)' }}>
                   {isConfirm
-                    ? '🎉 Que ótimo! Confirme sua presença na festa!'
-                    : '😢 Que pena! Confirme o cancelamento.'}
+                    ? '🎉 Mal podemos esperar te ver na festa!'
+                    : '😢 Sentiremos sua falta. Confirme o cancelamento:'}
                 </p>
 
                 <button
                   type="submit"
                   disabled={loading}
                   data-testid={isConfirm ? 'rsvp-confirm-submit' : 'rsvp-cancel-confirm'}
-                  className={`w-full py-3 rounded-xl font-semibold text-sm transition-all ${
-                    isConfirm
-                      ? 'bg-green-800 hover:bg-green-700 text-white'
-                      : 'bg-gray-800 hover:bg-gray-700 text-white'
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  className="w-full py-3.5 rounded-xl font-bold text-sm transition-all disabled:opacity-50"
+                  style={{
+                    background: isConfirm
+                      ? 'linear-gradient(135deg, #00C853, #006400)'
+                      : 'rgba(255,255,255,0.1)',
+                    color: 'white',
+                    border: isConfirm ? 'none' : '1px solid rgba(255,255,255,0.2)'
+                  }}
                 >
-                  {loading ? 'Enviando...' : (isConfirm ? 'Confirmar presença!' : 'Cancelar presença')}
+                  {loading ? 'Enviando...' : (isConfirm ? '🎉 Confirmar presença!' : 'Confirmar cancelamento')}
                 </button>
 
                 <button
                   type="button"
                   onClick={onClose}
-                  className="w-full mt-2 py-2.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                  className="w-full mt-2 py-2.5 text-sm font-medium transition-colors"
+                  style={{ color: 'rgba(255,255,255,0.35)' }}
                 >
                   Voltar
                 </button>
@@ -160,27 +193,24 @@ export default function RSVPModal({ type, slug, guestName, settings, onClose, on
             ) : (
               <motion.div
                 key="success"
-                initial={{ opacity: 0, scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0.93 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="text-center py-4"
               >
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
-                  isConfirm ? 'bg-green-100' : 'bg-gray-100'
-                }`}>
-                  {isConfirm
-                    ? <Check className="text-green-700" size={28} />
-                    : <UserX className="text-gray-600" size={28} />
-                  }
+                <div className="text-5xl mb-3">
+                  {isConfirm ? '🎉' : '🤍'}
                 </div>
                 <p
                   data-testid={isConfirm ? 'rsvp-confirm-success-text' : 'rsvp-cancel-success-text'}
-                  className="text-gray-800 font-medium text-base leading-relaxed mb-5"
+                  className="font-semibold text-base leading-relaxed mb-5"
+                  style={{ color: 'rgba(255,255,255,0.9)' }}
                 >
                   {message}
                 </p>
                 <button
                   onClick={onClose}
-                  className="px-6 py-2.5 bg-green-800 text-white rounded-xl text-sm font-medium hover:bg-green-700 transition-colors"
+                  className="px-6 py-2.5 rounded-xl text-sm font-bold transition-colors"
+                  style={{ background: 'linear-gradient(135deg, #00C853, #006400)', color: 'white' }}
                 >
                   Fechar
                 </button>

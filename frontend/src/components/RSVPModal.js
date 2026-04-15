@@ -122,11 +122,18 @@ export default function RSVPModal({ type, slug, guestName, settings, onClose, on
                   <div className="mb-4">
                     <label className="block text-sm font-semibold mb-2" style={{ color: 'rgba(255,255,255,0.65)' }}>Seu nome ou apelido</label>
                     <input
-                      type="text" value={name} onChange={e => setName(e.target.value)}
+                      type="text"
+                      value={name}
+                      onChange={e => setName(e.target.value)}
                       placeholder="Como você quer ser chamado?"
                       className="w-full px-4 py-3 rounded-xl text-sm font-medium focus:outline-none"
-                      style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)', color: 'white', caretColor: '#FFD700' }}
-                      required data-testid="rsvp-name-input"
+                      style={{
+                        background: 'rgba(255,255,255,0.07)',
+                        border: '1px solid rgba(255,255,255,0.15)',
+                        color: 'white', caretColor: '#FFD700'
+                      }}
+                      required
+                      data-testid="rsvp-name-input"
                     />
                   </div>
                 ) : (

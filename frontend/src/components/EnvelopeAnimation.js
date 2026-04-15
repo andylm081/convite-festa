@@ -3,14 +3,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Emoji } from './Emoji';
 
 export function playAudio(src) {
+  if (!src) return;
   try {
-    const audio = new Audio(src);
+    // Cache-bust to always fetch latest file, even if URL is the same
+    const bust = src + (src.includes('?') ? '&' : '?') + '_t=' + Date.now();
+    const audio = new Audio(bust);
     audio.volume = 0.65;
     const playPromise = audio.play();
     if (playPromise !== undefined) {
       playPromise.catch(() => {
-        // Retry once after a tiny delay
-        setTimeout(() => { audio.play().catch(() => {}); }, 100);
+        // Retry once without cache-bust (some browsers block query strings on audio)
+        const fallback = new Audio(src);
+        fallback.volume = 0.65;
+        fallback.play().catch(() => {});
       });
     }
   } catch (e) {

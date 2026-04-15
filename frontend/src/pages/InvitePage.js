@@ -138,6 +138,14 @@ export default function InvitePage() {
 
   // Pre-existing response (page loaded with already-responded guest)
   const alreadyResponded = !!(slug && guest && guestStatus !== 'pending');
+
+  const handleOpenModal = (type) => {
+    // Re-fetch latest settings so audio URLs are always up to date
+    axios.get(`${API_BASE}/api/event-settings`)
+      .then(res => setSettings(res.data))
+      .catch(() => {});
+    setModal(type);
+  };
   // Show banner when: pre-existing OR just confirmed in this session
   const showStatusBanner = alreadyResponded || (sessionResponseName !== null && guestStatus !== 'pending');
 
@@ -348,7 +356,7 @@ export default function InvitePage() {
             <div className="max-w-[420px] mx-auto space-y-2">
               <button
                 data-testid="rsvp-confirm-button"
-                onClick={() => setModal('confirm')}
+                onClick={() => handleOpenModal('confirm')}
                 className="w-full h-14 rounded-2xl font-bold text-base transition-all flex items-center justify-center gap-2 shadow-lg"
                 style={{
                   background: 'linear-gradient(135deg, #00C853, #006400)',
@@ -361,7 +369,7 @@ export default function InvitePage() {
               </button>
               <button
                 data-testid="rsvp-cancel-button"
-                onClick={() => setModal('cancel')}
+                onClick={() => handleOpenModal('cancel')}
                 className="w-full h-10 rounded-xl font-medium text-xs transition-all flex items-center justify-center gap-1.5"
                 style={{
                   background: 'transparent',
@@ -384,7 +392,7 @@ export default function InvitePage() {
             key={modal}
             type={modal}
             slug={slug || null}
-            guestName={guest?.full_name || guest?.nickname || ''}
+            guestName={guest?.full_name || guest?.nickname || sessionResponseName || ''}
             settings={settings}
             onClose={() => setModal(null)}
             onSuccess={handleRsvpSuccess}

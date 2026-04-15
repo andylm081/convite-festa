@@ -429,6 +429,55 @@ async def get_rsvp_logs(_=Depends(get_current_admin)):
     logs = await db.rsvp_logs.find().sort("created_at", -1).to_list(500)
     return [serialize_doc(l) for l in logs]
 
+@app.get("/api/guests/export")
+async def export_guests_csv(_=Depends(get_current_admin)):
+    from fastapi.responses import StreamingResponse
+    import csv, io
+    guests = await db.guests.find().sort("created_at", -1).to_list(10000)
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow([
+        "Nome", "Apelido", "Telefone", "Status",
+        "Resposta", "Data da resposta", "Origem", "Link do convite", "Observações", "Cadastrado em"
+    ])
+    status_labels = {"pending": "Pendente", "confirmed": "Confirmado", "cancelled": "Cancelado"}
+    for g in guests:
+        responded_at = ""
+        if g.get("responded_at"):
+            dt = g["responded_at"]
+            if isinstance(dt, datetime):
+                responded_at = dt.strftime("%d/%m/%Y %H:%M")
+            else:
+                responded_at = str(dt)[:16]
+        created_at = ""
+        if g.get("created_at"):
+            dt = g["created_at"]
+            if isinstance(dt, datetime):
+                created_at = dt.strftime("%d/%m/%Y %H:%M")
+            else:
+                created_at = str(dt)[:16]
+        writer.writerow([
+            g.get("full_name", ""),
+            g.get("nickname", ""),
+            g.get("phone", ""),
+            status_labels.get(g.get("status", "pending"), "Pendente"),
+            g.get("response_name", ""),
+            responded_at,
+            "",
+            g.get("invite_link", ""),
+            g.get("notes", ""),
+            created_at,
+        ])
+    output.seek(0)
+    bom = "\ufeff"  # UTF-8 BOM for Excel compatibility
+    content = bom + output.getvalue()
+    return StreamingResponse(
+        iter([content.encode("utf-8")]),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": "attachment; filename=convidados.csv"}
+    )
+
+
 @app.get("/api/health")
 async def health():
     return {"status": "ok"}

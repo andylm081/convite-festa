@@ -1,38 +1,14 @@
 [
   {
-    "content": "Create plan.md and setup project structure",
+    "content": "CSV export: backend endpoint + frontend download button",
     "status": "completed"
   },
   {
-    "content": "Install framer-motion and generate audio assets",
+    "content": "Status banner: skip envelope for already-responded guests, big security banner",
     "status": "completed"
   },
   {
-    "content": "Get design guidelines from design_agent",
-    "status": "completed"
-  },
-  {
-    "content": "Build backend: FastAPI + MongoDB (auth, guests, RSVP, settings)",
-    "status": "completed"
-  },
-  {
-    "content": "Build frontend: Invitation, RSVP flow, Admin panel",
-    "status": "completed"
-  },
-  {
-    "content": "Generate OG image and configure meta tags",
-    "status": "completed"
-  },
-  {
-    "content": "Full visual redesign: dark festive theme, Bebas Neue, story card, confetti",
-    "status": "completed"
-  },
-  {
-    "content": "End-to-end testing with testing_agent_v3",
-    "status": "completed"
-  },
-  {
-    "content": "Fix low-priority bug: cancel button state after confirm",
+    "content": "Change sealed page headline FESTA & COPA 2026 → ANDERSON & ARTHUR",
     "status": "completed"
   }
 ]

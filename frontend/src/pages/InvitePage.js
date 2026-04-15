@@ -6,18 +6,110 @@ import EnvelopeAnimation from '../components/EnvelopeAnimation';
 import InviteCard from '../components/InviteCard';
 import RSVPModal from '../components/RSVPModal';
 import { Emoji } from '../components/Emoji';
-import { Check, X as CancelIcon } from 'lucide-react';
+import { Check, X as CancelIcon, RefreshCw } from 'lucide-react';
 
 const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
+
+// Already-responded banner for individual links
+function AlreadyRespondedBanner({ guest, guestStatus, onChangeClick }) {
+  const isConfirmed = guestStatus === 'confirmed';
+  const formattedDate = guest?.responded_at
+    ? new Date(guest.responded_at).toLocaleDateString('pt-BR', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      })
+    : null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: 'spring', stiffness: 280, damping: 26, delay: 0.3 }}
+      className="w-full max-w-[400px] mx-auto mb-4 rounded-2xl overflow-hidden"
+      style={{
+        border: isConfirmed
+          ? '2px solid rgba(0,200,83,0.5)'
+          : '2px solid rgba(255,80,80,0.4)',
+        background: isConfirmed
+          ? 'rgba(0,100,40,0.35)'
+          : 'rgba(100,20,20,0.35)',
+        backdropFilter: 'blur(8px)',
+      }}
+    >
+      {/* Top stripe */}
+      <div
+        style={{
+          height: 4,
+          background: isConfirmed
+            ? 'linear-gradient(90deg, #00C853, #69F0AE)'
+            : 'linear-gradient(90deg, #ff5050, #ff9090)',
+        }}
+      />
+      <div className="px-5 py-4">
+        <div className="flex items-start gap-3">
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{
+              background: isConfirmed ? 'rgba(0,200,83,0.2)' : 'rgba(255,80,80,0.2)',
+            }}
+          >
+            <Emoji symbol={isConfirmed ? '✅' : '❌'} size="20px" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p
+              className="font-bold text-sm mb-0.5"
+              style={{ color: isConfirmed ? '#69F0AE' : '#ff9090' }}
+            >
+              {isConfirmed
+                ? `✓ Presença confirmada, ${guest?.full_name?.split(' ')[0]}!`
+                : `Presença cancelada, ${guest?.full_name?.split(' ')[0]}`}
+            </p>
+            {formattedDate && (
+              <p className="text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                Registrado em {formattedDate}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Change mind section */}
+        <div
+          className="mt-3 pt-3"
+          style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}
+        >
+          <p className="text-xs mb-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            {isConfirmed
+              ? 'Precisou cancelar? Você pode mudar sua resposta abaixo.'
+              : 'Mudou de ideia? Você ainda pode confirmar sua presença.'}
+          </p>
+          <button
+            onClick={onChangeClick}
+            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl transition-all"
+            style={{
+              background: 'rgba(255,255,255,0.08)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              color: 'rgba(255,255,255,0.65)',
+            }}
+          >
+            <RefreshCw size={12} />
+            Mudar minha resposta
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
 
 export default function InvitePage() {
   const { slug } = useParams();
   const [settings, setSettings] = useState(null);
   const [guest, setGuest] = useState(null);
   const [loadingSettings, setLoadingSettings] = useState(true);
+  const [loadingGuest, setLoadingGuest] = useState(!!slug);
   const [envelopeOpened, setEnvelopeOpened] = useState(false);
   const [modal, setModal] = useState(null);
   const [guestStatus, setGuestStatus] = useState(null);
+  const [showChangeMind, setShowChangeMind] = useState(false);
 
   useEffect(() => {
     axios.get(`${API_BASE}/api/event-settings`)
@@ -28,21 +120,30 @@ export default function InvitePage() {
 
   useEffect(() => {
     if (slug) {
+      setLoadingGuest(true);
       axios.get(`${API_BASE}/api/rsvp/guest/${slug}`)
         .then(res => {
           setGuest(res.data);
           setGuestStatus(res.data.status);
+          // Auto-open invite if already responded (skip envelope)
+          if (res.data.status !== 'pending') {
+            setEnvelopeOpened(true);
+          }
         })
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => setLoadingGuest(false));
     }
   }, [slug]);
 
+  const alreadyResponded = slug && guest && guestStatus !== 'pending';
+
   const handleRsvpSuccess = (newStatus) => {
     setGuestStatus(newStatus);
+    setShowChangeMind(false);
     setTimeout(() => setModal(null), 3500);
   };
 
-  if (loadingSettings) {
+  if (loadingSettings || loadingGuest) {
     return (
       <div
         className="min-h-screen flex items-center justify-center"
@@ -85,7 +186,7 @@ export default function InvitePage() {
             className="min-h-screen flex flex-col items-center justify-center px-4 py-10 relative"
             style={{ zIndex: 1 }}
           >
-            {/* Top header */}
+            {/* Top header — personal, not Copa-focused */}
             <motion.div
               initial={{ opacity: 0, y: -16 }}
               animate={{ opacity: 1, y: 0 }}
@@ -93,13 +194,13 @@ export default function InvitePage() {
               className="text-center mb-8"
             >
               <p
-                className="font-bebas text-4xl tracking-widest mb-1"
+                className="font-bebas text-5xl tracking-widest mb-1"
                 style={{ color: '#FFD700', textShadow: '0 0 30px rgba(255,215,0,0.3)' }}
               >
-                FESTA & COPA 2026
+                ANDERSON & ARTHUR
               </p>
               <p className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                Anderson & Arthur te convidam
+                Uma celebração especial · 13 de Junho de 2026
               </p>
             </motion.div>
 
@@ -206,6 +307,14 @@ export default function InvitePage() {
               transition={{ type: 'spring', stiffness: 220, damping: 26, delay: 0.1 }}
               className="w-full max-w-[400px]"
             >
+              {/* Already responded banner — individual link only */}
+              {alreadyResponded && (
+                <AlreadyRespondedBanner
+                  guest={guest}
+                  guestStatus={guestStatus}
+                  onChangeClick={() => setShowChangeMind(true)}
+                />
+              )}
               <InviteCard
                 settings={settings}
                 guestName={guest?.full_name || guest?.nickname}
@@ -217,13 +326,14 @@ export default function InvitePage() {
       </AnimatePresence>
 
       {/* ===== STICKY CTA ===== */}
+      {/* If already responded via individual link, hide CTA until "Mudar resposta" clicked */}
       <AnimatePresence>
-        {envelopeOpened && (
+        {envelopeOpened && (!alreadyResponded || showChangeMind) && (
           <motion.div
             initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 280, damping: 30, delay: 0.4 }}
+            transition={{ type: 'spring', stiffness: 280, damping: 30, delay: alreadyResponded ? 0 : 0.4 }}
             className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-4"
             style={{
               background: 'linear-gradient(180deg, transparent 0%, rgba(10,20,13,0.97) 25%)',
@@ -270,7 +380,7 @@ export default function InvitePage() {
                 {guestStatus === 'cancelled'
                   ? '✗ Presença cancelada'
                   : guestStatus === 'confirmed'
-                  ? 'Mudar resposta'
+                  ? 'Cancelar minha confirmação'
                   : 'Não vou poder comparecer'}
               </button>
             </div>

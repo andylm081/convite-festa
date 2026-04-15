@@ -1,14 +1,18 @@
 [
   {
-    "content": "CSV export: backend endpoint + frontend download button",
+    "content": "Create api/index.py - FastAPI + PostgreSQL for Vercel Serverless",
     "status": "completed"
   },
   {
-    "content": "Status banner: skip envelope for already-responded guests, big security banner",
+    "content": "Create schema.sql - PostgreSQL tables + seed",
     "status": "completed"
   },
   {
-    "content": "Change sealed page headline FESTA & COPA 2026 → ANDERSON & ARTHUR",
+    "content": "Create vercel.json - single deploy config",
+    "status": "completed"
+  },
+  {
+    "content": "Create DEPLOY.md - step-by-step guide",
     "status": "completed"
   }
 ]

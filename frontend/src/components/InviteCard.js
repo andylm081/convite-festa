@@ -67,9 +67,9 @@ function FootballJersey({ name, number, bodyColor, collarColor, numberColor = 'w
           <rect x="38" y="64" width="74" height="14" fill={collarColor} opacity="0.85" />
           <rect x="38" y="64" width="74" height="3" fill="rgba(255,255,255,0.4)" />
 
-          {/* ---- NAME (top of body, just after chest stripe) ---- */}
+          {/* ---- NAME (upper body, well spaced from stripe) ---- */}
           {/* Name shadow */}
-          <text x="76" y="91"
+          <text x="76" y="103"
             textAnchor="middle"
             fontFamily="'Bebas Neue','Impact','Arial Black',sans-serif"
             fontSize="15" fontWeight="900"
@@ -77,7 +77,7 @@ function FootballJersey({ name, number, bodyColor, collarColor, numberColor = 'w
             textLength="64" lengthAdjust="spacingAndGlyphs"
           >{name}</text>
           {/* Name main */}
-          <text x="75" y="90"
+          <text x="75" y="102"
             textAnchor="middle"
             fontFamily="'Bebas Neue','Impact','Arial Black',sans-serif"
             fontSize="14" fontWeight="900"
@@ -85,21 +85,20 @@ function FootballJersey({ name, number, bodyColor, collarColor, numberColor = 'w
             stroke="rgba(0,0,0,0.3)" strokeWidth="0.5"
             textLength="64" lengthAdjust="spacingAndGlyphs"
           >{name}</text>
-          {/* NO underline — removed by request */}
 
-          {/* ---- NUMBER (large, dominant — lower 60% of body) ---- */}
+          {/* ---- NUMBER (centered in lower body) ---- */}
           {/* Number shadow */}
-          <text x="77" y="157"
+          <text x="77" y="150"
             textAnchor="middle"
             fontFamily="'Bebas Neue','Impact','Arial Black',sans-serif"
-            fontSize="60" fontWeight="900"
+            fontSize="57" fontWeight="900"
             fill="rgba(0,0,0,0.3)"
           >{number}</text>
           {/* Number main */}
-          <text x="75" y="155"
+          <text x="75" y="148"
             textAnchor="middle"
             fontFamily="'Bebas Neue','Impact','Arial Black',sans-serif"
-            fontSize="58" fontWeight="900"
+            fontSize="55" fontWeight="900"
             fill={numberColor}
             stroke="rgba(0,0,0,0.2)" strokeWidth="1"
           >{number}</text>

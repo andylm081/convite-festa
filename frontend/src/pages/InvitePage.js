@@ -389,6 +389,7 @@ export default function InvitePage() {
             onClose={() => setModal(null)}
             onSuccess={handleRsvpSuccess}
             celebrationAudioUrl={settings?.celebration_audio_url || '/sounds/celebration.wav'}
+            cancellationAudioUrl={settings?.cancellation_audio_url || '/sounds/cancellation.wav'}
           />
         )}
       </AnimatePresence>

@@ -70,7 +70,7 @@ class EventSettings(BaseModel):
     open_audio_url: Optional[str] = None
     celebration_audio_url: Optional[str] = None
     theme_name: Optional[str] = None
-    is_active: Optional[bool] = None
+    cancellation_audio_url: Optional[str] = None
 
 class GuestCreate(BaseModel):
     full_name: str
@@ -191,6 +191,7 @@ async def startup_event():
             "cancellation_success_text": "Resposta registrada. Obrigado por avisar.",
             "open_audio_url": "/sounds/envelope-open.wav",
             "celebration_audio_url": "/sounds/celebration.wav",
+            "cancellation_audio_url": "/sounds/cancellation.wav",
             "theme_name": "copa",
             "is_active": True,
             "created_at": datetime.utcnow(),

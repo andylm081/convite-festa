@@ -38,6 +38,12 @@ const AUDIO_FIELDS = [
     hint: 'Toca ao confirmar presença — pode ser um áudio do Galvão Bueno!',
     defaultUrl: '/sounds/celebration.wav',
   },
+  {
+    key: 'cancellation_audio_url',
+    label: 'Áudio de cancelamento',
+    hint: 'Toca quando o convidado marca que não pode comparecer',
+    defaultUrl: '/sounds/cancellation.wav',
+  },
 ];
 
 function AudioField({ fieldKey, label, hint, value, onChange, token }) {

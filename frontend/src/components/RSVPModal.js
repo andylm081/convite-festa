@@ -48,7 +48,7 @@ function SuccessSparkles() {
   );
 }
 
-export default function RSVPModal({ type, slug, guestName, settings, onClose, onSuccess, celebrationAudioUrl = '/sounds/celebration.wav' }) {
+export default function RSVPModal({ type, slug, guestName, settings, onClose, onSuccess, celebrationAudioUrl = '/sounds/celebration.wav', cancellationAudioUrl = '/sounds/cancellation.wav' }) {
   const [name, setName] = useState(guestName || '');
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
@@ -65,6 +65,7 @@ export default function RSVPModal({ type, slug, guestName, settings, onClose, on
       setMessage(res.data.message);
       setDone(true);
       if (isConfirm) { playAudio(celebrationAudioUrl); setTimeout(fireConfetti, 100); }
+      else { playAudio(cancellationAudioUrl); }
       onSuccess && onSuccess(isConfirm ? 'confirmed' : 'cancelled', name.trim() || guestName);
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Erro ao registrar resposta.');

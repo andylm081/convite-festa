@@ -9,23 +9,23 @@
   },
   {
     "content": "Get design guidelines from design_agent",
-    "status": "in_progress"
+    "status": "completed"
   },
   {
     "content": "Build backend: FastAPI + MongoDB (auth, guests, RSVP, settings)",
-    "status": "pending"
+    "status": "completed"
   },
   {
     "content": "Build frontend: Invitation, RSVP flow, Admin panel",
-    "status": "pending"
+    "status": "completed"
   },
   {
     "content": "Generate OG image and configure meta tags",
-    "status": "pending"
+    "status": "completed"
   },
   {
     "content": "End-to-end testing with testing_agent_v3",
-    "status": "pending"
+    "status": "in_progress"
   },
   {
     "content": "Fix bugs and finalize",

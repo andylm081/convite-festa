@@ -1,34 +1,165 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+@import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,700;1,6..96,400&family=Manrope:wght@300;400;500;600;700&display=swap');
+
+/* ============ THEME: INVITE ============ */
+.theme-invite {
+  --bg: #FAF8F0;
+  --fg: #0f1a12;
+  --card: #FEFCF5;
+  --primary: #006400;
+  --primary-fg: #ffffff;
+  --accent: #FFD700;
+  --accent-fg: #0f1a12;
+  --blue: #003087;
+  --gold: #D8B55B;
+  --muted: #F0ECE0;
+  --muted-fg: #4a5e52;
+  --border: #E5DFC8;
+  --success: #006400;
+  --danger: #c0392b;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+/* ============ THEME: ADMIN ============ */
+.theme-admin {
+  --background: #ffffff;
+  --foreground: #1a2332;
+  --card: #ffffff;
+  --card-foreground: #1a2332;
+  --primary: #006400;
+  --primary-foreground: #ffffff;
+  --secondary: #f0f4f8;
+  --muted: #f0f4f8;
+  --muted-foreground: #6b7a90;
+  --border: #e2e8f0;
+  --ring: #006400;
+  --success-bg: #f0fdf4;
+  --success-fg: #006400;
+  --warning-bg: #fffbeb;
+  --warning-fg: #d97706;
+  --danger-bg: #fef2f2;
+  --danger-fg: #dc2626;
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-.App-link {
-    color: #61dafb;
+body {
+  font-family: 'Manrope', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.font-display {
+  font-family: 'Bodoni Moda', serif;
+}
+
+/* Invite background with subtle gradients */
+.invite-bg {
+  background-color: #FAF8F0;
+  background-image:
+    radial-gradient(600px circle at 20% 10%, rgba(255, 204, 0, 0.15), transparent 55%),
+    radial-gradient(700px circle at 80% 0%, rgba(0, 165, 80, 0.12), transparent 60%),
+    radial-gradient(500px circle at 50% 100%, rgba(0, 48, 135, 0.08), transparent 60%);
+  min-height: 100vh;
+}
+
+/* Envelope styles */
+.envelope-wrapper {
+  perspective: 1000px;
+}
+
+.wax-seal {
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.wax-seal:hover {
+  transform: scale(1.05);
+}
+.wax-seal:active {
+  transform: scale(0.96);
+}
+
+/* Invite card paper feel */
+.invite-paper {
+  background: #FEFCF5;
+  box-shadow:
+    0 2px 4px rgba(0,0,0,0.06),
+    0 8px 24px rgba(0,0,0,0.10),
+    0 0 0 1px rgba(216,181,91,0.25);
+}
+
+/* Status badge */
+.badge-confirmed {
+  background: #f0fdf4;
+  color: #006400;
+  border: 1px solid #bbf7d0;
+}
+.badge-cancelled {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+.badge-pending {
+  background: #fffbeb;
+  color: #d97706;
+  border: 1px solid #fed7aa;
+}
+
+/* Admin sidebar */
+.admin-sidebar {
+  background: linear-gradient(180deg, #003a1a 0%, #002612 100%);
+}
+
+/* Scrollbar thin */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0,100,0,0.3);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0,100,0,0.5);
+}
+
+/* Bottom padding for sticky bar */
+.pb-sticky {
+  padding-bottom: 5.5rem;
+}
+
+/* Shimmer on wax seal */
+@keyframes shimmer {
+  0% { opacity: 0.7; }
+  50% { opacity: 1; }
+  100% { opacity: 0.7; }
+}
+.shimmer {
+  animation: shimmer 2.5s ease-in-out infinite;
+}
+
+/* Confetti canvas */
+#confetti-canvas {
+  pointer-events: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 9999;
+}
+
+/* Ribbon stripe */
+.copa-ribbon {
+  background: linear-gradient(90deg, #009c3b 33.3%, #ffdf00 33.3% 66.6%, #002776 66.6%);
+  height: 4px;
+  width: 100%;
+}
+
+/* Green gradient header */
+.green-header {
+  background: linear-gradient(135deg, #003a1a 0%, #006400 50%, #009c3b 100%);
 }

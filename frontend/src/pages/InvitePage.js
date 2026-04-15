@@ -5,6 +5,7 @@ import axios from 'axios';
 import EnvelopeAnimation from '../components/EnvelopeAnimation';
 import InviteCard from '../components/InviteCard';
 import RSVPModal from '../components/RSVPModal';
+import { Emoji } from '../components/Emoji';
 import { Check, X as CancelIcon } from 'lucide-react';
 
 const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
@@ -164,23 +165,12 @@ export default function InvitePage() {
               {['⚽', '🏆', '🎉', '🎊', '✨', '🇧🇷'].map((em, i) => (
                 <motion.div
                   key={i}
-                  className="absolute text-2xl opacity-10"
-                  style={{
-                    left: `${10 + i * 16}%`,
-                    top: `${15 + (i % 3) * 28}%`,
-                  }}
-                  animate={{
-                    y: [0, -15, 0],
-                    rotate: [0, 10, -10, 0],
-                    opacity: [0.07, 0.16, 0.07],
-                  }}
-                  transition={{
-                    repeat: Infinity,
-                    duration: 4 + i * 0.5,
-                    delay: i * 0.4,
-                  }}
+                  className="absolute"
+                  style={{ left: `${10 + i * 16}%`, top: `${15 + (i % 3) * 28}%` }}
+                  animate={{ y: [0, -15, 0], rotate: [0, 10, -10, 0], opacity: [0.07, 0.16, 0.07] }}
+                  transition={{ repeat: Infinity, duration: 4 + i * 0.5, delay: i * 0.4 }}
                 >
-                  {em}
+                  <Emoji symbol={em} size="28px" style={{ filter: 'brightness(0.7)' }} />
                 </motion.div>
               ))}
             </div>

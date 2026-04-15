@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, ExternalLink } from 'lucide-react';
+import { Emoji, TwemojiText } from './Emoji';
 
 const CONFETTI_BG = 'https://images.unsplash.com/photo-1702311952079-7e34acc96888?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85';
 const STADIUM_BG = 'https://images.unsplash.com/photo-1706675780107-7c43cc487928?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85';
@@ -13,71 +14,179 @@ const fadeUp = {
   }),
 };
 
-// Jersey-style name card — replaces emoji icon
-function JerseyCard({ name, number, color, textColor = '#fff', index = 0 }) {
+// =============================================
+// SVG FOOTBALL JERSEY COMPONENT
+// Proper jersey silhouette: collar, shoulders, body, number on back, name above
+// =============================================
+function FootballJersey({ name, number, bodyColor, collarColor, textColor = 'white', index = 0, gradId }) {
+  const id = gradId || `grad-${number}`;
+  const shadowId = `shadow-${number}`;
+  const stripeId = `stripe-${number}`;
+
   return (
     <motion.div
       custom={index}
       variants={fadeUp}
-      className="relative overflow-hidden flex flex-col items-center"
-      style={{
-        background: color,
-        borderRadius: 20,
-        width: 120,
-        height: 120,
-        boxShadow: `0 8px 24px ${color}55`,
-        border: '2px solid rgba(255,255,255,0.15)',
-      }}
+      style={{ width: 150, height: 172, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
     >
-      {/* Big watermark number */}
-      <div
-        className="absolute font-bebas select-none pointer-events-none"
-        style={{
-          fontSize: 80,
-          color: 'rgba(0,0,0,0.18)',
-          bottom: -12,
-          right: 6,
-          lineHeight: 1,
-          letterSpacing: '-2px',
-        }}
+      <svg
+        viewBox="0 0 150 172"
+        xmlns="http://www.w3.org/2000/svg"
+        width="150"
+        height="172"
+        style={{ overflow: 'visible', filter: 'drop-shadow(0 8px 24px rgba(0,0,0,0.5))' }}
       >
-        {number}
-      </div>
+        <defs>
+          {/* Jersey shine gradient */}
+          <linearGradient id={id} x1="0%" y1="0%" x2="60%" y2="100%">
+            <stop offset="0%" stopColor="rgba(255,255,255,0.28)" />
+            <stop offset="45%" stopColor="rgba(255,255,255,0.06)" />
+            <stop offset="100%" stopColor="rgba(0,0,0,0.18)" />
+          </linearGradient>
+          {/* Stripe gradient */}
+          <linearGradient id={stripeId} x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="rgba(255,255,255,0)" />
+            <stop offset="50%" stopColor={collarColor} />
+            <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+          </linearGradient>
+        </defs>
 
-      {/* Jersey stripes */}
-      <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0,
-        height: 6,
-        background: 'linear-gradient(90deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.05) 100%)'
-      }} />
+        {/* ---- DROP SHADOW ---- */}
+        <ellipse cx="75" cy="168" rx="56" ry="6" fill="rgba(0,0,0,0.35)" />
 
-      {/* Content */}
-      <div className="relative z-10 flex flex-col items-center justify-center h-full gap-1 px-2">
-        {/* Number badge */}
-        <div
-          className="font-bebas text-3xl leading-none"
-          style={{ color: textColor, textShadow: '0 2px 8px rgba(0,0,0,0.3)' }}
+        {/* ---- JERSEY BODY ---- */}
+        {/*
+          Jersey (back view) shape:
+          - Round collar at top center (arc)
+          - Short sleeves/shoulder flaps
+          - Rectangular body
+          - Slightly curved hem
+        */}
+        <path
+          d="
+            M 40,20
+            Q 75,4 110,20
+            L 148,44
+            L 126,62
+            L 110,62
+            L 108,158
+            Q 75,164 42,158
+            L 40,62
+            L 24,62
+            L 2,44
+            Z
+          "
+          fill={bodyColor}
+        />
+
+        {/* ---- SHINE OVERLAY ---- */}
+        <path
+          d="
+            M 40,20
+            Q 75,4 110,20
+            L 148,44
+            L 126,62
+            L 110,62
+            L 108,158
+            Q 75,164 42,158
+            L 40,62
+            L 24,62
+            L 2,44
+            Z
+          "
+          fill={`url(#${id})`}
+        />
+
+        {/* ---- COLLAR (round neck, contrasting color) ---- */}
+        <path
+          d="M 54,22 Q 75,40 96,22 Q 75,20 54,22 Z"
+          fill={collarColor}
+          opacity="0.9"
+        />
+        <path
+          d="M 54,22 Q 75,40 96,22"
+          fill="none"
+          stroke="rgba(255,255,255,0.4)"
+          strokeWidth="1.5"
+        />
+
+        {/* ---- SHOULDER STRIPES (sleeve details) ---- */}
+        <path
+          d="M 40,20 L 2,44 L 24,62 L 40,62 L 40,36 L 56,24 Z"
+          fill="rgba(255,255,255,0.1)"
+        />
+        <path
+          d="M 110,20 L 148,44 L 126,62 L 110,62 L 110,36 L 94,24 Z"
+          fill="rgba(255,255,255,0.1)"
+        />
+
+        {/* ---- CHEST STRIPE (horizontal, like Brazil seleção) ---- */}
+        <rect
+          x="40" y="64" width="70" height="13" rx="1"
+          fill={collarColor}
+          opacity="0.75"
+        />
+        <rect
+          x="40" y="64" width="70" height="3" rx="1"
+          fill="rgba(255,255,255,0.3)"
+        />
+
+        {/* ---- BACK NUMBER (large, authentic) ---- */}
+        {/* Shadow layer */}
+        <text
+          x="77"
+          y="148"
+          textAnchor="middle"
+          fontFamily="'Bebas Neue', 'Impact', 'Arial Narrow', sans-serif"
+          fontSize="76"
+          fontWeight="900"
+          fill="rgba(0,0,0,0.25)"
+          letterSpacing="-1"
         >
-          #{number}
-        </div>
-        {/* Name */}
-        <div
-          className="font-bebas text-lg tracking-wider leading-none text-center"
-          style={{
-            color: textColor,
-            textShadow: '0 1px 6px rgba(0,0,0,0.4)',
-            letterSpacing: '0.06em'
-          }}
+          {number}
+        </text>
+        {/* Main number */}
+        <text
+          x="75"
+          y="146"
+          textAnchor="middle"
+          fontFamily="'Bebas Neue', 'Impact', 'Arial Narrow', sans-serif"
+          fontSize="74"
+          fontWeight="900"
+          fill={textColor}
+          letterSpacing="-1"
+          style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}
+        >
+          {number}
+        </text>
+
+        {/* ---- PLAYER NAME (above number) ---- */}
+        <text
+          x="75"
+          y="100"
+          textAnchor="middle"
+          fontFamily="'Bebas Neue', 'Impact', 'Arial Narrow', sans-serif"
+          fontSize="15"
+          fontWeight="700"
+          fill={textColor}
+          letterSpacing="5"
+          opacity="0.95"
         >
           {name}
-        </div>
-        {/* Shimmer bar */}
-        <div style={{
-          width: '60%', height: 2, borderRadius: 2,
-          background: 'rgba(255,255,255,0.35)',
-          marginTop: 4
-        }} />
-      </div>
+        </text>
+        {/* Name underline */}
+        <line
+          x1="42" y1="104"
+          x2="108" y2="104"
+          stroke={textColor}
+          strokeWidth="1.5"
+          opacity="0.4"
+        />
+
+        {/* ---- SLEEVE BOTTOM EDGE ---- */}
+        <line x1="2" y1="44" x2="24" y2="62" stroke="rgba(0,0,0,0.15)" strokeWidth="1" />
+        <line x1="148" y1="44" x2="126" y2="62" stroke="rgba(0,0,0,0.15)" strokeWidth="1" />
+      </svg>
     </motion.div>
   );
 }
@@ -97,7 +206,7 @@ function InfoSticker({ emoji, label, value, variant = 'default', index = 0 }) {
       variants={fadeUp}
       className={`${variantClass} px-4 py-3 flex items-start gap-3`}
     >
-      <span className="text-xl flex-shrink-0 mt-0.5">{emoji}</span>
+      <Emoji symbol={emoji} size="1.3em" style={{ marginTop: 2, flexShrink: 0 }} />
       <div>
         <p className="text-xs font-bold uppercase tracking-widest mb-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>{label}</p>
         <p className="text-sm font-semibold leading-snug" style={{ color: 'rgba(255,255,255,0.9)' }}>{value}</p>
@@ -122,56 +231,41 @@ export default function InviteCard({ settings, guestName, guestStatus }) {
       initial="hidden"
       animate="visible"
     >
-      {/* ===== HERO SECTION ===== */}
+      {/* ===== HERO ===== */}
       <div className="invite-hero relative" style={{ minHeight: 220 }}>
         <div className="invite-hero-img" style={{ backgroundImage: `url(${CONFETTI_BG})` }} />
         <div className="invite-hero-overlay" />
         <div className="brazil-ribbon relative z-10" />
-
         <div className="relative z-10 px-6 pt-5 pb-7 text-center">
-          {/* Copa badge */}
           <motion.div custom={0} variants={fadeUp} className="inline-flex items-center gap-2 mb-3">
             <span
               className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full"
               style={{ background: 'rgba(255,215,0,0.15)', border: '1px solid rgba(255,215,0,0.35)', color: '#FFD700' }}
             >
-              <span>⚽</span> Copa do Mundo 2026
+              <Emoji symbol="⚽" size="14px" /> Copa do Mundo 2026
             </span>
           </motion.div>
 
-          {/* VOCÊ FOI CONVOCADO */}
-          <motion.h1
-            custom={1}
-            variants={fadeUp}
-            className="font-bebas leading-none mb-0.5"
+          <motion.h1 custom={1} variants={fadeUp} className="font-bebas leading-none mb-0.5"
             style={{ color: '#FFD700', fontSize: 52, textShadow: '0 0 30px rgba(255,215,0,0.4)' }}
-          >
-            Você foi
-          </motion.h1>
-          <motion.h1
-            custom={2}
-            variants={fadeUp}
-            className="font-bebas leading-none"
+          >Você foi</motion.h1>
+          <motion.h1 custom={2} variants={fadeUp} className="font-bebas leading-none"
             style={{ color: '#FFD700', fontSize: 52, textShadow: '0 0 30px rgba(255,215,0,0.4)' }}
-          >
-            Convocado!
-          </motion.h1>
+          >Convocado!</motion.h1>
 
-          {/* Guest greeting */}
           {guestName && (
-            <motion.div
-              custom={3}
-              variants={fadeUp}
+            <motion.div custom={3} variants={fadeUp}
               className="mt-3 inline-block px-4 py-1.5 rounded-full text-sm font-semibold"
               style={{ background: 'rgba(0,200,83,0.2)', border: '1px solid rgba(0,200,83,0.4)', color: '#69F0AE' }}
             >
-              Olá, {guestName}! 👋
+              <Emoji symbol="👋" size="16px" style={{ verticalAlign: 'middle', marginRight: 4 }} />
+              Olá, {guestName}!
             </motion.div>
           )}
         </div>
       </div>
 
-      {/* ===== JERSEY CARDS (replaces emojis) ===== */}
+      {/* ===== FOOTBALL JERSEYS ===== */}
       <motion.div
         custom={4}
         variants={fadeUp}
@@ -181,46 +275,49 @@ export default function InviteCard({ settings, guestName, guestStatus }) {
           borderBottom: '1px solid rgba(255,255,255,0.06)'
         }}
       >
-        <div className="flex items-center justify-center gap-5">
-          <JerseyCard
+        <div className="flex items-center justify-center gap-3">
+          {/* Anderson #24 — Yellow jersey, green collar/stripe */}
+          <FootballJersey
             name="ANDERSON"
             number="24"
-            color="linear-gradient(135deg, #FFA000, #FFD700)"
-            textColor="#1a1a00"
+            bodyColor="#FFD700"
+            collarColor="#006400"
+            textColor="#0a1f00"
             index={4}
+            gradId="grad-anderson"
           />
 
-          {/* VS / & divider */}
-          <div className="flex flex-col items-center gap-0.5">
-            <motion.div
-              animate={{ scale: [1, 1.15, 1] }}
-              transition={{ repeat: Infinity, duration: 2.2 }}
-              className="text-2xl"
-            >
-              ❤️‍🔥
+          {/* Divider */}
+          <div className="flex flex-col items-center gap-1 mx-1">
+            <motion.div animate={{ scale: [1, 1.15, 1] }} transition={{ repeat: Infinity, duration: 2.2 }}>
+              <Emoji symbol="❤️" size="24px" />
             </motion.div>
             <span className="text-xs font-bold" style={{ color: 'rgba(255,255,255,0.3)' }}>&</span>
           </div>
 
-          <JerseyCard
+          {/* Arthur #23 — Green jersey, yellow collar/stripe */}
+          <FootballJersey
             name="ARTHUR"
             number="23"
-            color="linear-gradient(135deg, #006400, #00C853)"
-            textColor="#e0ffe8"
+            bodyColor="#006400"
+            collarColor="#FFD700"
+            textColor="white"
             index={5}
+            gradId="grad-arthur"
           />
         </div>
-        <p className="text-center text-xs mt-3 font-medium" style={{ color: 'rgba(255,255,255,0.35)' }}>
-          🇧🇷 Comemoração em grande estilo
+
+        <p className="text-center text-xs mt-2 font-medium" style={{ color: 'rgba(255,255,255,0.35)' }}>
+          <Emoji symbol="🇧🇷" size="14px" style={{ verticalAlign: 'middle', marginRight: 4 }} />
+          Comemoração em grande estilo
         </p>
       </motion.div>
 
       {/* ===== DATE / STADIUM ===== */}
       <motion.div custom={6} variants={fadeUp} className="px-5 pt-4">
-        <div
-          className="rounded-2xl overflow-hidden"
-          style={{ backgroundImage: `url(${STADIUM_BG})`, backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }}
-        >
+        <div className="rounded-2xl overflow-hidden" style={{
+          backgroundImage: `url(${STADIUM_BG})`, backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative'
+        }}>
           <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.72)' }} />
           <div className="relative z-10 px-5 py-4 flex items-center justify-between">
             <div>
@@ -233,7 +330,7 @@ export default function InviteCard({ settings, guestName, guestStatus }) {
             </div>
           </div>
           <div className="relative z-10 px-5 pb-3 flex items-center gap-2">
-            <span className="text-base">⚽</span>
+            <Emoji symbol="⚽" size="16px" />
             <p className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.65)' }}>{settings.match_text}</p>
           </div>
         </div>
@@ -250,7 +347,7 @@ export default function InviteCard({ settings, guestName, guestStatus }) {
       <motion.div custom={10} variants={fadeUp} className="px-5 pb-5 pt-2">
         <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
           <div className="flex items-start gap-3 mb-3">
-            <span className="text-xl">📍</span>
+            <Emoji symbol="📍" size="20px" style={{ marginTop: 2 }} />
             <div>
               <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Local</p>
               <p className="text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.9)' }}>{settings.address_text}</p>
@@ -279,7 +376,7 @@ export default function InviteCard({ settings, guestName, guestStatus }) {
               ? 'bg-green-900/40 text-green-400 border border-green-700/40'
               : 'bg-red-900/40 text-red-400 border border-red-700/40'
           }`}>
-            {guestStatus === 'confirmed' ? '✓ Presença confirmada 🎉' : '✗ Presença cancelada'}
+            {guestStatus === 'confirmed' ? '\u2713 Presença confirmada' : '\u2717 Presença cancelada'}
           </div>
         </motion.div>
       )}

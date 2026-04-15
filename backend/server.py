@@ -3,7 +3,7 @@ import uuid
 import hashlib
 from datetime import datetime, timedelta
 from typing import Optional, List
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, status, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr
@@ -432,3 +432,35 @@ async def get_rsvp_logs(_=Depends(get_current_admin)):
 @app.get("/api/health")
 async def health():
     return {"status": "ok"}
+
+# --- AUDIO UPLOAD ---
+
+@app.post("/api/upload/audio")
+async def upload_audio(
+    file: UploadFile,
+    _=Depends(get_current_admin)
+):
+    import os, uuid
+    # Validate file type
+    allowed_types = ["audio/wav", "audio/mpeg", "audio/mp3", "audio/ogg", "audio/x-wav", "audio/x-mpeg"]
+    allowed_exts = [".wav", ".mp3", ".ogg", ".m4a"]
+    
+    filename = file.filename or "audio"
+    ext = os.path.splitext(filename)[1].lower()
+    if ext not in allowed_exts:
+        raise HTTPException(status_code=400, detail=f"Formato não suportado. Use: {', '.join(allowed_exts)}")
+    
+    # Generate unique filename
+    safe_name = f"custom_{uuid.uuid4().hex[:8]}{ext}"
+    save_path = f"/app/frontend/public/sounds/{safe_name}"
+    
+    # Save file
+    contents = await file.read()
+    if len(contents) > 10 * 1024 * 1024:  # 10MB limit
+        raise HTTPException(status_code=400, detail="Arquivo muito grande. Limite: 10MB")
+    
+    with open(save_path, "wb") as f:
+        f.write(contents)
+    
+    public_url = f"/sounds/{safe_name}"
+    return {"url": public_url, "filename": safe_name, "message": "Áudio enviado com sucesso!"}

@@ -67,47 +67,45 @@ function FootballJersey({ name, number, bodyColor, collarColor, numberColor = 'w
           <rect x="38" y="64" width="74" height="14" fill={collarColor} opacity="0.85" />
           <rect x="38" y="64" width="74" height="3" fill="rgba(255,255,255,0.4)" />
 
-          {/* ---- NUMBER (large, dominant) ---- */}
-          {/* Number shadow */}
-          <text x="77" y="150"
+          {/* ---- NAME (top of body, just after chest stripe) ---- */}
+          {/* Name shadow */}
+          <text x="76" y="91"
             textAnchor="middle"
             fontFamily="'Bebas Neue','Impact','Arial Black',sans-serif"
-            fontSize="72" fontWeight="900"
+            fontSize="15" fontWeight="900"
+            fill="rgba(0,0,0,0.45)"
+            textLength="64" lengthAdjust="spacingAndGlyphs"
+          >{name}</text>
+          {/* Name main */}
+          <text x="75" y="90"
+            textAnchor="middle"
+            fontFamily="'Bebas Neue','Impact','Arial Black',sans-serif"
+            fontSize="14" fontWeight="900"
+            fill={nameColor}
+            stroke="rgba(0,0,0,0.3)" strokeWidth="0.5"
+            textLength="64" lengthAdjust="spacingAndGlyphs"
+          >{name}</text>
+          {/* NO underline — removed by request */}
+
+          {/* ---- NUMBER (large, dominant — lower 60% of body) ---- */}
+          {/* Number shadow */}
+          <text x="77" y="157"
+            textAnchor="middle"
+            fontFamily="'Bebas Neue','Impact','Arial Black',sans-serif"
+            fontSize="60" fontWeight="900"
             fill="rgba(0,0,0,0.3)"
           >{number}</text>
           {/* Number main */}
-          <text x="75" y="148"
+          <text x="75" y="155"
             textAnchor="middle"
             fontFamily="'Bebas Neue','Impact','Arial Black',sans-serif"
-            fontSize="70" fontWeight="900"
+            fontSize="58" fontWeight="900"
             fill={numberColor}
-            stroke="rgba(0,0,0,0.25)" strokeWidth="1.5"
+            stroke="rgba(0,0,0,0.2)" strokeWidth="1"
           >{number}</text>
-
-          {/* ---- NAME (above number, always fits) ---- */}
-          {/* Name shadow */}
-          <text x="76" y="99"
-            textAnchor="middle"
-            fontFamily="'Bebas Neue','Impact','Arial Black',sans-serif"
-            fontSize="17" fontWeight="900"
-            fill="rgba(0,0,0,0.45)"
-            textLength="66" lengthAdjust="spacingAndGlyphs"
-          >{name}</text>
-          {/* Name main */}
-          <text x="75" y="98"
-            textAnchor="middle"
-            fontFamily="'Bebas Neue','Impact','Arial Black',sans-serif"
-            fontSize="16" fontWeight="900"
-            fill={nameColor}
-            stroke="rgba(0,0,0,0.3)" strokeWidth="0.6"
-            textLength="66" lengthAdjust="spacingAndGlyphs"
-          >{name}</text>
-
-          {/* Name underline */}
-          <line x1="44" y1="102" x2="106" y2="102" stroke={nameColor} strokeWidth="1.5" opacity="0.5" />
         </g>
 
-        {/* Shine overlay (not clipped so it covers full jersey incl. sleeves) */}
+        {/* Shine overlay */}
         <path d={jerseyPath} fill={`url(#${shineId})`} />
 
         {/* Collar border line */}
@@ -219,11 +217,11 @@ export default function InviteCard({ settings, guestName, guestStatus }) {
             <span className="text-xs font-bold" style={{ color: 'rgba(255,255,255,0.3)' }}>&</span>
           </div>
 
-          {/* Arthur #23 — Green jersey (away), yellow collar */}
+          {/* Arthur #23 — BLUE jersey (nova camisa away 2026), yellow collar */}
           <FootballJersey
             name="ARTHUR"
             number="23"
-            bodyColor="#006400"
+            bodyColor="#002776"
             collarColor="#FFD700"
             numberColor="white"
             nameColor="white"

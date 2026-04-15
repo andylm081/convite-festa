@@ -24,11 +24,15 @@
     "status": "completed"
   },
   {
-    "content": "End-to-end testing with testing_agent_v3",
-    "status": "in_progress"
+    "content": "Full visual redesign: dark festive theme, Bebas Neue, story card, confetti",
+    "status": "completed"
   },
   {
-    "content": "Fix bugs and finalize",
-    "status": "pending"
+    "content": "End-to-end testing with testing_agent_v3",
+    "status": "completed"
+  },
+  {
+    "content": "Fix low-priority bug: cancel button state after confirm",
+    "status": "completed"
   }
 ]

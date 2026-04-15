@@ -233,12 +233,20 @@ export default function InvitePage() {
                 className="w-full h-10 rounded-xl font-medium text-xs transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
                 style={{
                   background: 'transparent',
-                  color: guestStatus === 'cancelled' ? 'rgba(255,100,100,0.6)' : 'rgba(255,255,255,0.38)',
+                  color: guestStatus === 'cancelled'
+                    ? 'rgba(255,100,100,0.6)'
+                    : guestStatus === 'confirmed'
+                    ? 'rgba(255,255,255,0.25)'
+                    : 'rgba(255,255,255,0.38)',
                   border: '1px solid rgba(255,255,255,0.1)',
                 }}
               >
                 <CancelIcon size={12} />
-                {guestStatus === 'cancelled' ? 'Presença cancelada' : 'Não vou poder comparecer'}
+                {guestStatus === 'cancelled'
+                  ? '✗ Presença cancelada'
+                  : guestStatus === 'confirmed'
+                  ? 'Mudar resposta'
+                  : 'Não vou poder comparecer'}
               </button>
             </div>
           </motion.div>

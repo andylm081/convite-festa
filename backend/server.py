@@ -173,7 +173,7 @@ async def startup_event():
     existing_settings = await db.event_settings.find_one({"is_active": True})
     if not existing_settings:
         await db.event_settings.insert_one({
-            "title": "Você foi convidado!",
+            "title": "Você foi convocado!",
             "subtitle": "Comemoração do aniversário de Anderson 24 anos e Arthur 23 anos",
             "honoree_1_name": "Anderson",
             "honoree_1_age": 24,

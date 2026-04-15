@@ -3,41 +3,62 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export function playAudio(src) {
   try {
-    const audio = new Audio(src);
-    audio.volume = 0.45;
-    audio.play().catch(() => {});
-  } catch (e) {}
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    fetch(src)
+      .then(r => r.arrayBuffer())
+      .then(buf => ctx.decodeAudioData(buf))
+      .then(decoded => {
+        const source = ctx.createBufferSource();
+        const gain = ctx.createGain();
+        gain.gain.value = 0.55;
+        source.buffer = decoded;
+        source.connect(gain);
+        gain.connect(ctx.destination);
+        source.start(0);
+      })
+      .catch(() => {
+        // Fallback to Audio element
+        const a = new Audio(src);
+        a.volume = 0.55;
+        a.play().catch(() => {});
+      });
+  } catch (e) {
+    const a = new Audio(src);
+    a.volume = 0.55;
+    a.play().catch(() => {});
+  }
 }
 
-// CSS-animated confetti particles
 const CONFETTI_COLORS = [
   '#FFD700', '#00C853', '#FF6B00', '#003087', '#FFFFFF',
-  '#FF3D00', '#FFCC00', '#69F0AE', '#40C4FF',
+  '#FF3D00', '#FFCC00', '#69F0AE', '#40C4FF', '#FF80AB',
 ];
 
-function ConfettiParticles({ count = 24 }) {
+// Confetti pieces always fall from the very TOP of the viewport
+function ConfettiParticles({ count = 28 }) {
   return (
     <>
       {Array.from({ length: count }).map((_, i) => {
         const color = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
-        const left = `${Math.random() * 100}%`;
-        const delay = `${Math.random() * 6}s`;
-        const duration = `${4 + Math.random() * 6}s`;
-        const size = `${6 + Math.random() * 8}px`;
-        const height = `${4 + Math.random() * 5}px`;
+        const left = `${(i / count) * 100 + Math.random() * (100 / count)}%`;
+        const delay = `${(i * 0.25) % 5}s`;
+        const duration = `${5 + (i % 4)}s`;
+        const size = `${7 + (i % 5)}px`;
+        const height = `${4 + (i % 4)}px`;
+        const isCircle = i % 3 === 0;
         return (
           <div
             key={i}
             className="confetti-piece"
             style={{
               left,
-              width: size,
-              height,
+              top: '-12px',        // always start from the very top
+              width: isCircle ? size : size,
+              height: isCircle ? size : height,
               background: color,
               animationDelay: delay,
               animationDuration: duration,
-              borderRadius: Math.random() > 0.5 ? '50%' : '1px',
-              transform: `rotate(${Math.random() * 360}deg)`,
+              borderRadius: isCircle ? '50%' : '1px',
             }}
           />
         );
@@ -46,18 +67,16 @@ function ConfettiParticles({ count = 24 }) {
   );
 }
 
-export default function EnvelopeAnimation({ onOpen, isOpen }) {
-  const [phase, setPhase] = useState('sealed'); // sealed | breaking | open
-  const prefersReduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+export default function EnvelopeAnimation({ onOpen }) {
+  const [phase, setPhase] = useState('sealed');
+  const prefersReduced = typeof window !== 'undefined' &&
+    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
   const handleTap = () => {
     if (phase !== 'sealed') return;
     playAudio('/sounds/envelope-open.wav');
     setPhase('breaking');
-    setTimeout(() => {
-      setPhase('open');
-      onOpen && onOpen();
-    }, 700);
+    setTimeout(() => { setPhase('open'); onOpen && onOpen(); }, 650);
   };
 
   if (prefersReduced) {
@@ -76,7 +95,7 @@ export default function EnvelopeAnimation({ onOpen, isOpen }) {
 
   return (
     <div data-testid="invite-envelope-stage" className="w-full flex flex-col items-center">
-      <ConfettiParticles count={20} />
+      <ConfettiParticles count={28} />
 
       <AnimatePresence mode="wait">
         {phase === 'sealed' && (
@@ -84,69 +103,67 @@ export default function EnvelopeAnimation({ onOpen, isOpen }) {
             key="sealed"
             initial={{ opacity: 0, y: 30, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.85, y: -20 }}
+            exit={{ opacity: 0, scale: 0.8, y: -30 }}
             transition={{ type: 'spring', stiffness: 240, damping: 22, delay: 0.2 }}
             className="w-full max-w-[340px] px-4"
           >
-            {/* Sealed card */}
             <div className="sealed-card p-0 overflow-hidden">
-              {/* Top ribbon */}
               <div className="brazil-ribbon" />
-
-              {/* Inner content */}
-              <div className="px-6 pt-7 pb-8 flex flex-col items-center text-center">
-                {/* Floating envelope emoji */}
+              <div className="px-6 pt-7 pb-6 flex flex-col items-center text-center">
+                {/* Floating envelope icon */}
                 <motion.div
-                  animate={{ y: [0, -10, 0] }}
-                  transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
+                  animate={{ y: [0, -12, 0], rotate: [0, 3, -3, 0] }}
+                  transition={{ repeat: Infinity, duration: 3.5, ease: 'easeInOut' }}
                   className="text-6xl mb-4 select-none"
                 >
                   🎁
                 </motion.div>
 
-                <h2 className="font-bebas text-3xl text-yellow-400 text-glow-yellow mb-1 tracking-wider">
-                  Você tem um convite!
+                <h2
+                  className="font-bebas text-3xl mb-1 tracking-wider"
+                  style={{ color: '#FFD700', textShadow: '0 0 20px rgba(255,215,0,0.5)' }}
+                >
+                  Você foi convocado!
                 </h2>
-                <p className="text-green-300 text-sm font-medium mb-6 opacity-80">
+                <p className="text-sm font-medium mb-6" style={{ color: 'rgba(255,255,255,0.55)' }}>
                   Anderson & Arthur te chamam pra festa 🎉
                 </p>
 
-                {/* Seal tap button */}
+                {/* CTA button */}
                 <motion.button
                   data-testid="invite-envelope-seal-button"
                   onClick={handleTap}
-                  className="relative btn-shimmer glow-pulse text-green-900 font-bold text-lg px-8 py-4 rounded-2xl shadow-lg cursor-pointer select-none"
-                  whileTap={{ scale: 0.93 }}
-                  whileHover={{ scale: 1.04 }}
-                  style={{ fontFamily: 'Manrope, sans-serif' }}
+                  className="relative btn-shimmer glow-pulse text-green-900 font-bold text-lg px-8 py-4 rounded-2xl shadow-xl cursor-pointer select-none"
+                  whileTap={{ scale: 0.91 }}
+                  whileHover={{ scale: 1.05 }}
+                  style={{ fontFamily: 'Manrope, sans-serif', minWidth: 220 }}
                 >
-                  <span className="flex items-center gap-2">
-                    <span>✨</span>
-                    <span>Abrir convite</span>
-                    <span>✨</span>
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="text-xl">✨</span>
+                    Abrir convite
+                    <span className="text-xl">✨</span>
                   </span>
                 </motion.button>
 
-                <p className="text-green-600 text-xs mt-4 font-medium">
+                <p className="text-xs mt-3 font-medium" style={{ color: 'rgba(255,255,255,0.3)' }}>
                   Toque para revelar a surpresa
                 </p>
               </div>
 
-              {/* Stars decorations */}
-              <div className="flex justify-center gap-6 pb-5">
+              {/* Emoji row */}
+              <div className="flex justify-center gap-5 pb-4">
                 {['⚽', '🏆', '🎊', '🇧🇷', '🎉'].map((em, i) => (
                   <motion.span
                     key={i}
-                    className="text-xl opacity-60"
-                    animate={{ opacity: [0.4, 0.8, 0.4] }}
-                    transition={{ repeat: Infinity, duration: 2, delay: i * 0.3 }}
+                    className="text-lg select-none"
+                    style={{ opacity: 0.5 }}
+                    animate={{ opacity: [0.35, 0.7, 0.35] }}
+                    transition={{ repeat: Infinity, duration: 2.5, delay: i * 0.35 }}
                   >
                     {em}
                   </motion.span>
                 ))}
               </div>
-
-              {/* Bottom ribbon */}
               <div className="brazil-ribbon" />
             </div>
           </motion.div>
@@ -155,20 +172,21 @@ export default function EnvelopeAnimation({ onOpen, isOpen }) {
         {phase === 'breaking' && (
           <motion.div
             key="breaking"
-            initial={{ scale: 1 }}
-            animate={{ scale: [1, 1.08, 0.95], rotate: [0, 2, -2, 0] }}
+            animate={{ scale: [1, 1.1, 0.92], rotate: [0, 3, -3, 0], opacity: [1, 1, 0] }}
             transition={{ duration: 0.6 }}
             className="w-full max-w-[340px] px-4"
           >
             <div className="sealed-card p-8 flex flex-col items-center">
               <motion.div
-                animate={{ scale: [1, 1.5, 1], rotate: [0, 15, -15, 0] }}
-                transition={{ duration: 0.5 }}
+                animate={{ scale: [1, 1.6, 1.2], rotate: [0, 20, -20, 0] }}
+                transition={{ duration: 0.55 }}
                 className="text-6xl"
               >
-                🎊
+                🎆
               </motion.div>
-              <p className="text-yellow-400 font-bold text-lg mt-3 font-bebas tracking-wider">Abrindo...</p>
+              <p className="font-bebas text-xl tracking-wider mt-3" style={{ color: '#FFD700' }}>
+                Abrindo...
+              </p>
             </div>
           </motion.div>
         )}

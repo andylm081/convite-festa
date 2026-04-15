@@ -62,6 +62,18 @@ export default function InvitePage() {
       className="theme-invite party-bg min-h-screen"
       style={{ overflowX: 'hidden' }}
     >
+      {/* Richer background: bokeh confetti overlay */}
+      <div
+        style={{
+          position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
+          backgroundImage: `url(https://images.unsplash.com/photo-1678491448890-f4ac6414cb61?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85)`,
+          backgroundSize: 'cover', backgroundPosition: 'center',
+          opacity: 0.12,
+          filter: 'blur(2px) saturate(2)',
+        }}
+      />
+      {/* Dark overlay on top of background image */}
+      <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', background: 'rgba(8,16,10,0.75)' }} />
       {/* ===== PRE-OPEN STATE ===== */}
       <AnimatePresence>
         {!envelopeOpened && (
@@ -69,7 +81,8 @@ export default function InvitePage() {
             key="sealed-view"
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.4 }}
-            className="min-h-screen flex flex-col items-center justify-center px-4 py-10"
+            className="min-h-screen flex flex-col items-center justify-center px-4 py-10 relative"
+            style={{ zIndex: 1 }}
           >
             {/* Top header */}
             <motion.div
@@ -125,20 +138,41 @@ export default function InvitePage() {
               </div>
             </motion.div>
 
+            {/* Admin link — subtle, for organizers */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.5 }}
+              className="absolute bottom-6 left-0 right-0 flex justify-center"
+            >
+              <a
+                href="/admin/login"
+                className="text-xs font-medium px-3 py-1.5 rounded-full transition-all"
+                style={{
+                  color: 'rgba(255,255,255,0.25)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: 'rgba(0,0,0,0.2)',
+                  textDecoration: 'none',
+                }}
+              >
+                👑 Área dos organizadores
+              </a>
+            </motion.div>
+
             {/* Floating emoji decorations */}
             <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
-              {['⚽', '🏆', '🎉', '🇬🇧', '🎊', '✨', '🇧🇷'].map((em, i) => (
+              {['⚽', '🏆', '🎉', '🎊', '✨', '🇧🇷'].map((em, i) => (
                 <motion.div
                   key={i}
                   className="absolute text-2xl opacity-10"
                   style={{
-                    left: `${10 + i * 13}%`,
-                    top: `${20 + (i % 3) * 25}%`,
+                    left: `${10 + i * 16}%`,
+                    top: `${15 + (i % 3) * 28}%`,
                   }}
                   animate={{
                     y: [0, -15, 0],
                     rotate: [0, 10, -10, 0],
-                    opacity: [0.08, 0.18, 0.08],
+                    opacity: [0.07, 0.16, 0.07],
                   }}
                   transition={{
                     repeat: Infinity,
@@ -161,7 +195,8 @@ export default function InvitePage() {
             key="opened-view"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="min-h-screen flex flex-col items-center px-4 pt-6 pb-32"
+            className="min-h-screen flex flex-col items-center px-4 pt-6 pb-32 relative"
+            style={{ zIndex: 1 }}
           >
             {/* Subtle top text */}
             <motion.p
@@ -199,7 +234,7 @@ export default function InvitePage() {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 280, damping: 30, delay: 0.4 }}
-            className="fixed bottom-0 left-0 right-0 z-40 px-4 pb-4"
+            className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-4"
             style={{
               background: 'linear-gradient(180deg, transparent 0%, rgba(10,20,13,0.97) 25%)',
               paddingTop: '1.5rem'

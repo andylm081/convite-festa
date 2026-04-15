@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check, UserX, User } from 'lucide-react';
+import { X } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
@@ -9,23 +9,57 @@ import { playAudio } from './EnvelopeAnimation';
 const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
 
 function fireConfetti() {
+  // Center burst
   confetti({
-    particleCount: 120,
+    particleCount: 100,
     spread: 70,
-    startVelocity: 32,
-    gravity: 0.85,
-    ticks: 220,
+    startVelocity: 35,
+    gravity: 0.9,
+    ticks: 250,
     colors: ['#006400', '#00C853', '#FFD700', '#003087', '#FFFFFF', '#FF6B00'],
-    origin: { x: 0.5, y: 0.55 }
+    origin: { x: 0.5, y: 0.5 }
   });
+  // Side bursts
   setTimeout(() => {
-    confetti({ particleCount: 60, spread: 50, startVelocity: 20,
-      colors: ['#FFD700', '#00C853', '#FF6B00'],
-      origin: { x: 0.3, y: 0.7 } });
-    confetti({ particleCount: 60, spread: 50, startVelocity: 20,
-      colors: ['#FFD700', '#00C853', '#FF6B00'],
-      origin: { x: 0.7, y: 0.7 } });
-  }, 250);
+    confetti({ particleCount: 55, angle: 60, spread: 55, startVelocity: 28, origin: { x: 0, y: 0.65 } });
+    confetti({ particleCount: 55, angle: 120, spread: 55, startVelocity: 28, origin: { x: 1, y: 0.65 } });
+  }, 200);
+  // Top rain
+  setTimeout(() => {
+    confetti({ particleCount: 80, spread: 100, startVelocity: 15, gravity: 0.6, ticks: 300, origin: { x: 0.5, y: 0 } });
+  }, 400);
+}
+
+// Animated stars/sparkles for success
+const SPARKLE_POSITIONS = [
+  { x: -60, y: -60 }, { x: 60, y: -60 },
+  { x: -80, y: 0 }, { x: 80, y: 0 },
+  { x: -50, y: 60 }, { x: 50, y: 60 },
+  { x: 0, y: -80 }, { x: 0, y: 80 },
+];
+
+function SuccessSparkles() {
+  return (
+    <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ zIndex: 0 }}>
+      {SPARKLE_POSITIONS.map((pos, i) => (
+        <motion.div
+          key={i}
+          className="absolute text-lg select-none"
+          style={{ left: '50%', top: '50%' }}
+          initial={{ x: 0, y: 0, scale: 0, opacity: 1 }}
+          animate={{
+            x: pos.x,
+            y: pos.y,
+            scale: [0, 1.3, 0.8, 0],
+            opacity: [1, 1, 0.6, 0]
+          }}
+          transition={{ duration: 0.9, delay: i * 0.06, ease: 'easeOut' }}
+        >
+          {i % 3 === 0 ? '⭐' : i % 3 === 1 ? '✨' : '🎉'}
+        </motion.div>
+      ))}
+    </div>
+  );
 }
 
 export default function RSVPModal({ type, slug, guestName, settings, onClose, onSuccess }) {
@@ -51,7 +85,7 @@ export default function RSVPModal({ type, slug, guestName, settings, onClose, on
       setDone(true);
       if (isConfirm) {
         playAudio('/sounds/celebration.wav');
-        fireConfetti();
+        setTimeout(fireConfetti, 100);
       }
       onSuccess && onSuccess(isConfirm ? 'confirmed' : 'cancelled');
     } catch (err) {
@@ -68,26 +102,29 @@ export default function RSVPModal({ type, slug, guestName, settings, onClose, on
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
+      {/* Backdrop */}
       <motion.div
         className="absolute inset-0"
-        style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}
+        style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(10px)' }}
         onClick={!done ? onClose : undefined}
       />
 
+      {/* Modal */}
       <motion.div
         className="relative w-full max-w-sm overflow-hidden"
         style={{
           background: 'linear-gradient(170deg, #0f2018 0%, #0a1a10 100%)',
-          border: isConfirm ? '1.5px solid rgba(0,200,83,0.35)' : '1.5px solid rgba(255,255,255,0.15)',
+          border: isConfirm ? '1.5px solid rgba(0,200,83,0.4)' : '1.5px solid rgba(255,255,255,0.15)',
           borderRadius: 24,
-          boxShadow: '0 24px 60px rgba(0,0,0,0.7)'
+          boxShadow: isConfirm
+            ? '0 24px 60px rgba(0,0,0,0.7), 0 0 40px rgba(0,200,83,0.15)'
+            : '0 24px 60px rgba(0,0,0,0.7)'
         }}
-        initial={{ y: 60, opacity: 0, scale: 0.96 }}
+        initial={{ y: 80, opacity: 0, scale: 0.92 }}
         animate={{ y: 0, opacity: 1, scale: 1 }}
-        exit={{ y: 40, opacity: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        exit={{ y: 60, opacity: 0, scale: 0.95 }}
+        transition={{ type: 'spring', stiffness: 320, damping: 28 }}
       >
-        {/* Brazil ribbon */}
         <div className="brazil-ribbon" />
 
         {/* Header */}
@@ -96,7 +133,7 @@ export default function RSVPModal({ type, slug, guestName, settings, onClose, on
           style={{
             background: isConfirm
               ? 'linear-gradient(90deg, rgba(0,100,0,0.5), rgba(0,200,83,0.2))'
-              : 'rgba(255,255,255,0.05)',
+              : 'rgba(255,255,255,0.04)',
             borderBottom: '1px solid rgba(255,255,255,0.08)'
           }}
         >
@@ -106,29 +143,25 @@ export default function RSVPModal({ type, slug, guestName, settings, onClose, on
               {isConfirm ? 'Confirmar presença' : 'Cancelar presença'}
             </h2>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1 rounded-lg transition-colors"
-            style={{ color: 'rgba(255,255,255,0.5)' }}
-            data-testid="rsvp-modal-close"
-          >
-            <X size={18} />
+          <button onClick={onClose} className="p-1.5 rounded-xl" style={{ color: 'rgba(255,255,255,0.4)' }} data-testid="rsvp-modal-close">
+            <X size={17} />
           </button>
         </div>
 
+        {/* Body */}
         <div className="p-5">
           <AnimatePresence mode="wait">
             {!done ? (
               <motion.form
                 key="form"
                 onSubmit={handleSubmit}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
               >
                 {!slug ? (
                   <div className="mb-4">
-                    <label className="block text-sm font-semibold mb-2" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                    <label className="block text-sm font-semibold mb-2" style={{ color: 'rgba(255,255,255,0.65)' }}>
                       Seu nome ou apelido
                     </label>
                     <input
@@ -140,8 +173,7 @@ export default function RSVPModal({ type, slug, guestName, settings, onClose, on
                       style={{
                         background: 'rgba(255,255,255,0.07)',
                         border: '1px solid rgba(255,255,255,0.15)',
-                        color: 'white',
-                        caretColor: '#FFD700'
+                        color: 'white', caretColor: '#FFD700'
                       }}
                       required
                       data-testid="rsvp-name-input"
@@ -153,39 +185,36 @@ export default function RSVPModal({ type, slug, guestName, settings, onClose, on
                     style={{ background: 'rgba(0,200,83,0.1)', border: '1px solid rgba(0,200,83,0.25)' }}
                   >
                     <span className="text-lg">👋</span>
-                    <p className="text-sm font-semibold" style={{ color: '#69F0AE' }}>
-                      {guestName}
-                    </p>
+                    <p className="text-sm font-semibold" style={{ color: '#69F0AE' }}>{guestName}</p>
                   </div>
                 )}
 
-                <p className="text-sm mb-4" style={{ color: 'rgba(255,255,255,0.55)' }}>
-                  {isConfirm
-                    ? '🎉 Mal podemos esperar te ver na festa!'
-                    : '😢 Sentiremos sua falta. Confirme o cancelamento:'}
+                <p className="text-sm mb-4" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  {isConfirm ? '🎉 Mal podemos esperar te ver na festa!' : '😢 Sentiremos sua falta. Confirme o cancelamento:'}
                 </p>
 
-                <button
+                <motion.button
                   type="submit"
                   disabled={loading}
                   data-testid={isConfirm ? 'rsvp-confirm-submit' : 'rsvp-cancel-confirm'}
-                  className="w-full py-3.5 rounded-xl font-bold text-sm transition-all disabled:opacity-50"
+                  whileHover={!loading ? { scale: 1.02 } : {}}
+                  whileTap={!loading ? { scale: 0.97 } : {}}
+                  className="w-full py-3.5 rounded-xl font-bold text-sm disabled:opacity-50"
                   style={{
-                    background: isConfirm
-                      ? 'linear-gradient(135deg, #00C853, #006400)'
-                      : 'rgba(255,255,255,0.1)',
+                    background: isConfirm ? 'linear-gradient(135deg, #00C853, #006400)' : 'rgba(255,255,255,0.09)',
                     color: 'white',
-                    border: isConfirm ? 'none' : '1px solid rgba(255,255,255,0.2)'
+                    border: isConfirm ? 'none' : '1px solid rgba(255,255,255,0.18)',
+                    boxShadow: isConfirm ? '0 4px 20px rgba(0,200,83,0.35)' : 'none'
                   }}
                 >
                   {loading ? 'Enviando...' : (isConfirm ? '🎉 Confirmar presença!' : 'Confirmar cancelamento')}
-                </button>
+                </motion.button>
 
                 <button
                   type="button"
                   onClick={onClose}
-                  className="w-full mt-2 py-2.5 text-sm font-medium transition-colors"
-                  style={{ color: 'rgba(255,255,255,0.35)' }}
+                  className="w-full mt-2 py-2 text-xs font-medium transition-colors"
+                  style={{ color: 'rgba(255,255,255,0.3)' }}
                 >
                   Voltar
                 </button>
@@ -193,27 +222,58 @@ export default function RSVPModal({ type, slug, guestName, settings, onClose, on
             ) : (
               <motion.div
                 key="success"
-                initial={{ opacity: 0, scale: 0.93 }}
+                initial={{ opacity: 0, scale: 0.85 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="text-center py-4"
+                transition={{ type: 'spring', stiffness: 280, damping: 22 }}
+                className="text-center py-3 relative"
               >
-                <div className="text-5xl mb-3">
+                {isConfirm && <SuccessSparkles />}
+
+                {/* Big animated emoji */}
+                <motion.div
+                  className="text-6xl mb-3 relative z-10"
+                  initial={{ scale: 0, rotate: -30 }}
+                  animate={{ scale: [0, 1.3, 0.95, 1.05, 1], rotate: [- 30, 10, -5, 3, 0] }}
+                  transition={{ duration: 0.8, delay: 0.1 }}
+                >
                   {isConfirm ? '🎉' : '🤍'}
-                </div>
-                <p
+                </motion.div>
+
+                <motion.p
                   data-testid={isConfirm ? 'rsvp-confirm-success-text' : 'rsvp-cancel-success-text'}
-                  className="font-semibold text-base leading-relaxed mb-5"
-                  style={{ color: 'rgba(255,255,255,0.9)' }}
+                  className="font-semibold text-base leading-relaxed mb-1 relative z-10"
+                  style={{ color: 'rgba(255,255,255,0.92)' }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
                 >
                   {message}
-                </p>
-                <button
+                </motion.p>
+
+                {isConfirm && (
+                  <motion.p
+                    className="text-xs mb-5 relative z-10"
+                    style={{ color: '#69F0AE' }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                  >
+                    ⚽ Brasil x Marrocos às 19h — nos vemos lá!
+                  </motion.p>
+                )}
+
+                <motion.button
                   onClick={onClose}
-                  className="px-6 py-2.5 rounded-xl text-sm font-bold transition-colors"
+                  className="px-6 py-2.5 rounded-xl text-sm font-bold relative z-10"
                   style={{ background: 'linear-gradient(135deg, #00C853, #006400)', color: 'white' }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.96 }}
                 >
                   Fechar
-                </button>
+                </motion.button>
               </motion.div>
             )}
           </AnimatePresence>

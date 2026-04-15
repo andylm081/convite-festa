@@ -56,18 +56,30 @@ function FootballJersey({ name, number, bodyColor, collarColor, numberColor = 'w
 
         {/* === CLIPPED CONTENT: all inside jersey shape === */}
         <g clipPath={`url(#${clipId})`}>
-          {/* Collar band */}
-          <path d="M 52,22 Q 75,40 98,22 L 98,18 Q 75,35 52,18 Z" fill={collarColor} opacity="0.9" />
+          {/* ---- BACK-COLLAR BAND (vista de costas: apenas a tira do pescoço, sem decote V) ---- */}
+          {/* Back neckline: small horizontal band at top center, like the back of the collar */}
+          <path
+            d="M 56,20 Q 75,14 94,20 L 94,28 Q 75,22 56,28 Z"
+            fill={collarColor}
+            opacity="0.9"
+          />
+          {/* Collar stitching line */}
+          <path
+            d="M 56,20 Q 75,14 94,20"
+            fill="none"
+            stroke="rgba(255,255,255,0.35)"
+            strokeWidth="1.5"
+          />
 
           {/* Shoulder accent */}
           <path d="M 38,20 L 2,44 L 24,62 L 38,62 L 38,38 L 54,24 Z" fill="rgba(255,255,255,0.1)" />
           <path d="M 112,20 L 148,44 L 126,62 L 112,62 L 112,38 L 96,24 Z" fill="rgba(255,255,255,0.1)" />
 
-          {/* Chest stripe */}
+          {/* Horizontal stripe (costa da camisa) */}
           <rect x="38" y="64" width="74" height="14" fill={collarColor} opacity="0.85" />
           <rect x="38" y="64" width="74" height="3" fill="rgba(255,255,255,0.4)" />
 
-          {/* ---- NAME (upper body, well spaced from stripe) ---- */}
+          {/* ---- NOME (costas: acima do número, ombros) ---- */}
           {/* Name shadow */}
           <text x="76" y="103"
             textAnchor="middle"
@@ -86,7 +98,7 @@ function FootballJersey({ name, number, bodyColor, collarColor, numberColor = 'w
             textLength="64" lengthAdjust="spacingAndGlyphs"
           >{name}</text>
 
-          {/* ---- NUMBER (centered in lower body) ---- */}
+          {/* ---- NÚMERO (costas: centralizado na parte de baixo) ---- */}
           {/* Number shadow */}
           <text x="77" y="150"
             textAnchor="middle"
@@ -106,9 +118,7 @@ function FootballJersey({ name, number, bodyColor, collarColor, numberColor = 'w
 
         {/* Shine overlay */}
         <path d={jerseyPath} fill={`url(#${shineId})`} />
-
-        {/* Collar border line */}
-        <path d="M 52,22 Q 75,40 98,22" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" />
+        {/* No front collar line — this is the back view */}
       </svg>
     </motion.div>
   );

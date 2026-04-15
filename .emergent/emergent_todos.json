@@ -1,0 +1,34 @@
+[
+  {
+    "content": "Create plan.md and setup project structure",
+    "status": "completed"
+  },
+  {
+    "content": "Install framer-motion and generate audio assets",
+    "status": "completed"
+  },
+  {
+    "content": "Get design guidelines from design_agent",
+    "status": "in_progress"
+  },
+  {
+    "content": "Build backend: FastAPI + MongoDB (auth, guests, RSVP, settings)",
+    "status": "pending"
+  },
+  {
+    "content": "Build frontend: Invitation, RSVP flow, Admin panel",
+    "status": "pending"
+  },
+  {
+    "content": "Generate OG image and configure meta tags",
+    "status": "pending"
+  },
+  {
+    "content": "End-to-end testing with testing_agent_v3",
+    "status": "pending"
+  },
+  {
+    "content": "Fix bugs and finalize",
+    "status": "pending"
+  }
+]

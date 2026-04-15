@@ -369,11 +369,29 @@ async def confirm_rsvp(data: RSVPConfirm):
             raise HTTPException(status_code=400, detail="Nome é obrigatório para o link público")
         response_name = data.response_name
         source = "public_link"
+        # Create a guest record for public link respondents so they appear in the admin list
+        new_guest = {
+            "full_name": response_name,
+            "nickname": "",
+            "phone": "",
+            "notes": "Via link público",
+            "slug": None,
+            "invite_link": "",
+            "status": "confirmed",
+            "response_name": response_name,
+            "responded_at": datetime.utcnow(),
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow(),
+            "source": "public_link"
+        }
+        result = await db.guests.insert_one(new_guest)
+        guest = new_guest
+        guest["_id"] = result.inserted_id
     
     # Log
     from bson import ObjectId
     await db.rsvp_logs.insert_one({
-        "guest_id": str(guest["_id"]) if data.slug else None,
+        "guest_id": str(guest["_id"]) if data.slug or (not data.slug and guest.get("_id")) else None,
         "guest_name": response_name,
         "action": "confirmed",
         "response_name": response_name,
@@ -408,9 +426,27 @@ async def cancel_rsvp(data: RSVPCancel):
             raise HTTPException(status_code=400, detail="Nome é obrigatório para o link público")
         response_name = data.response_name
         source = "public_link"
+        # Create a guest record for public link cancellations too
+        new_guest = {
+            "full_name": response_name,
+            "nickname": "",
+            "phone": "",
+            "notes": "Via link público",
+            "slug": None,
+            "invite_link": "",
+            "status": "cancelled",
+            "response_name": response_name,
+            "responded_at": datetime.utcnow(),
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow(),
+            "source": "public_link"
+        }
+        result = await db.guests.insert_one(new_guest)
+        guest = new_guest
+        guest["_id"] = result.inserted_id
     
     await db.rsvp_logs.insert_one({
-        "guest_id": str(guest["_id"]) if data.slug else None,
+        "guest_id": str(guest["_id"]) if guest.get("_id") else None,
         "guest_name": response_name,
         "action": "cancelled",
         "response_name": response_name,

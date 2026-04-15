@@ -11,7 +11,8 @@ import { Check, X as CancelIcon, RefreshCw } from 'lucide-react';
 const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
 
 // Already-responded banner for individual links
-function AlreadyRespondedBanner({ guest, guestStatus, onChangeClick }) {
+function AlreadyRespondedBanner({ guest, guestStatus, onChangeClick, name }) {
+  const displayName = name || guest?.full_name?.split(' ')[0] || 'Você';
   const isConfirmed = guestStatus === 'confirmed';
   const formattedDate = guest?.responded_at
     ? new Date(guest.responded_at).toLocaleDateString('pt-BR', {
@@ -61,8 +62,8 @@ function AlreadyRespondedBanner({ guest, guestStatus, onChangeClick }) {
               style={{ color: isConfirmed ? '#69F0AE' : '#ff9090' }}
             >
               {isConfirmed
-                ? `✓ Presença confirmada, ${guest?.full_name?.split(' ')[0]}!`
-                : `Presença cancelada, ${guest?.full_name?.split(' ')[0]}`}
+                ? `✓ Presença confirmada, ${displayName}!`
+                : `Presença cancelada, ${displayName}`}
             </p>
             {formattedDate && (
               <p className="text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
@@ -110,6 +111,7 @@ export default function InvitePage() {
   const [modal, setModal] = useState(null);
   const [guestStatus, setGuestStatus] = useState(null);
   const [showChangeMind, setShowChangeMind] = useState(false);
+  const [sessionResponseName, setSessionResponseName] = useState(null);
 
   useEffect(() => {
     axios.get(`${API_BASE}/api/event-settings`)
@@ -125,7 +127,6 @@ export default function InvitePage() {
         .then(res => {
           setGuest(res.data);
           setGuestStatus(res.data.status);
-          // Auto-open invite if already responded (skip envelope)
           if (res.data.status !== 'pending') {
             setEnvelopeOpened(true);
           }
@@ -135,11 +136,15 @@ export default function InvitePage() {
     }
   }, [slug]);
 
-  const alreadyResponded = slug && guest && guestStatus !== 'pending';
+  // Pre-existing response (page loaded with already-responded guest)
+  const alreadyResponded = !!(slug && guest && guestStatus !== 'pending');
+  // Show banner when: pre-existing OR just confirmed in this session
+  const showStatusBanner = alreadyResponded || (sessionResponseName !== null && guestStatus !== 'pending');
 
-  const handleRsvpSuccess = (newStatus) => {
+  const handleRsvpSuccess = (newStatus, responseName) => {
     setGuestStatus(newStatus);
     setShowChangeMind(false);
+    setSessionResponseName(responseName || guest?.full_name || guest?.nickname || 'Você');
     setTimeout(() => setModal(null), 3500);
   };
 
@@ -207,7 +212,7 @@ export default function InvitePage() {
             {/* Sealed card */}
             <EnvelopeAnimation
               onOpen={() => setEnvelopeOpened(true)}
-              isOpen={false}
+              openAudioUrl={settings?.open_audio_url || '/sounds/envelope-open.wav'}
             />
 
             {/* Date pill */}
@@ -307,10 +312,10 @@ export default function InvitePage() {
               transition={{ type: 'spring', stiffness: 220, damping: 26, delay: 0.1 }}
               className="w-full max-w-[400px]"
             >
-              {/* Already responded banner — individual link only */}
-              {alreadyResponded && (
+              {showStatusBanner && (
                 <AlreadyRespondedBanner
                   guest={guest}
+                  name={sessionResponseName || guest?.full_name?.split(' ')[0]}
                   guestStatus={guestStatus}
                   onChangeClick={() => setShowChangeMind(true)}
                 />
@@ -326,14 +331,14 @@ export default function InvitePage() {
       </AnimatePresence>
 
       {/* ===== STICKY CTA ===== */}
-      {/* If already responded via individual link, hide CTA until "Mudar resposta" clicked */}
+      {/* Hide when: status is non-pending (confirmed/cancelled) — unless user clicked "Mudar resposta" */}
       <AnimatePresence>
-        {envelopeOpened && (!alreadyResponded || showChangeMind) && (
+        {envelopeOpened && (guestStatus === 'pending' || guestStatus === null || showChangeMind) && (
           <motion.div
             initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 280, damping: 30, delay: alreadyResponded ? 0 : 0.4 }}
+            transition={{ type: 'spring', stiffness: 280, damping: 30, delay: 0.4 }}
             className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-4"
             style={{
               background: 'linear-gradient(180deg, transparent 0%, rgba(10,20,13,0.97) 25%)',
@@ -341,47 +346,31 @@ export default function InvitePage() {
             }}
           >
             <div className="max-w-[420px] mx-auto space-y-2">
-              {/* Confirm - full width, dominant */}
               <button
                 data-testid="rsvp-confirm-button"
                 onClick={() => setModal('confirm')}
-                disabled={guestStatus === 'confirmed'}
-                className="w-full h-14 rounded-2xl font-bold text-base transition-all disabled:opacity-60 flex items-center justify-center gap-2 shadow-lg"
+                className="w-full h-14 rounded-2xl font-bold text-base transition-all flex items-center justify-center gap-2 shadow-lg"
                 style={{
-                  background: guestStatus === 'confirmed'
-                    ? 'rgba(0,200,83,0.2)'
-                    : 'linear-gradient(135deg, #00C853, #006400)',
-                  color: guestStatus === 'confirmed' ? '#69F0AE' : 'white',
-                  border: guestStatus === 'confirmed' ? '1px solid rgba(0,200,83,0.4)' : 'none',
-                  boxShadow: guestStatus !== 'confirmed' ? '0 4px 24px rgba(0,200,83,0.4)' : 'none',
+                  background: 'linear-gradient(135deg, #00C853, #006400)',
+                  color: 'white',
+                  boxShadow: '0 4px 24px rgba(0,200,83,0.4)',
                 }}
               >
                 <Check size={17} />
-                {guestStatus === 'confirmed' ? '✓ Presença confirmada!' : '🎉 Confirmar presença'}
+                🎉 Confirmar presença
               </button>
-
-              {/* Cancel - secondary, subtle */}
               <button
                 data-testid="rsvp-cancel-button"
                 onClick={() => setModal('cancel')}
-                disabled={guestStatus === 'cancelled'}
-                className="w-full h-10 rounded-xl font-medium text-xs transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+                className="w-full h-10 rounded-xl font-medium text-xs transition-all flex items-center justify-center gap-1.5"
                 style={{
                   background: 'transparent',
-                  color: guestStatus === 'cancelled'
-                    ? 'rgba(255,100,100,0.6)'
-                    : guestStatus === 'confirmed'
-                    ? 'rgba(255,255,255,0.25)'
-                    : 'rgba(255,255,255,0.38)',
+                  color: 'rgba(255,255,255,0.38)',
                   border: '1px solid rgba(255,255,255,0.1)',
                 }}
               >
                 <CancelIcon size={12} />
-                {guestStatus === 'cancelled'
-                  ? '✗ Presença cancelada'
-                  : guestStatus === 'confirmed'
-                  ? 'Cancelar minha confirmação'
-                  : 'Não vou poder comparecer'}
+                Não vou poder comparecer
               </button>
             </div>
           </motion.div>
@@ -399,6 +388,7 @@ export default function InvitePage() {
             settings={settings}
             onClose={() => setModal(null)}
             onSuccess={handleRsvpSuccess}
+            celebrationAudioUrl={settings?.celebration_audio_url || '/sounds/celebration.wav'}
           />
         )}
       </AnimatePresence>

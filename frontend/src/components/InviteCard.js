@@ -290,18 +290,7 @@ export default function InviteCard({ settings, guestName, guestStatus }) {
         </div>
       </motion.div>
 
-      {/* Status chip */}
-      {guestStatus && guestStatus !== 'pending' && (
-        <motion.div custom={10} variants={fadeUp} className="px-5 pb-5">
-          <div className={`text-center text-sm font-bold py-3 rounded-2xl ${
-            guestStatus === 'confirmed'
-              ? 'bg-green-900/40 text-green-400 border border-green-700/40'
-              : 'bg-red-900/40 text-red-400 border border-red-700/40'
-          }`}>
-            {guestStatus === 'confirmed' ? '✓ Presença confirmada 🎉' : '✗ Presença cancelada'}
-          </div>
-        </motion.div>
-      )}
+      {/* Status chip removed — handled by AlreadyRespondedBanner in InvitePage */}
 
       <div className="brazil-ribbon" />
     </motion.div>

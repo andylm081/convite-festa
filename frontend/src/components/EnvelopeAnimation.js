@@ -54,14 +54,14 @@ function ConfettiParticles({ count = 28 }) {
   );
 }
 
-export default function EnvelopeAnimation({ onOpen }) {
+export default function EnvelopeAnimation({ onOpen, openAudioUrl = '/sounds/envelope-open.wav' }) {
   const [phase, setPhase] = useState('sealed');
   const prefersReduced = typeof window !== 'undefined' &&
     window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
   const handleTap = () => {
     if (phase !== 'sealed') return;
-    playAudio('/sounds/envelope-open.wav');
+    playAudio(openAudioUrl);
     setPhase('breaking');
     setTimeout(() => { setPhase('open'); onOpen && onOpen(); }, 650);
   };

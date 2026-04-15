@@ -48,7 +48,7 @@ function SuccessSparkles() {
   );
 }
 
-export default function RSVPModal({ type, slug, guestName, settings, onClose, onSuccess }) {
+export default function RSVPModal({ type, slug, guestName, settings, onClose, onSuccess, celebrationAudioUrl = '/sounds/celebration.wav' }) {
   const [name, setName] = useState(guestName || '');
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
@@ -64,8 +64,8 @@ export default function RSVPModal({ type, slug, guestName, settings, onClose, on
       const res = await axios.post(`${API_BASE}${isConfirm ? '/api/rsvp/confirm' : '/api/rsvp/cancel'}`, payload);
       setMessage(res.data.message);
       setDone(true);
-      if (isConfirm) { playAudio('/sounds/celebration.wav'); setTimeout(fireConfetti, 100); }
-      onSuccess && onSuccess(isConfirm ? 'confirmed' : 'cancelled');
+      if (isConfirm) { playAudio(celebrationAudioUrl); setTimeout(fireConfetti, 100); }
+      onSuccess && onSuccess(isConfirm ? 'confirmed' : 'cancelled', name.trim() || guestName);
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Erro ao registrar resposta.');
     } finally { setLoading(false); }

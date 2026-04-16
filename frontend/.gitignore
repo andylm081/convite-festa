@@ -9,7 +9,7 @@
 /coverage
 
 # production
-/build
+# /build — committed for vercel static deploy
 
 # misc
 .DS_Store

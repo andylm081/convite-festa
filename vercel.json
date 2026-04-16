@@ -3,6 +3,14 @@
   "buildCommand": "cd frontend && npm install --legacy-peer-deps && npm run build",
   "outputDirectory": "frontend/build",
   "framework": null,
+  "build": {
+    "env": {
+      "SKIP_PREFLIGHT_CHECK": "true",
+      "GENERATE_SOURCEMAP": "false",
+      "DISABLE_ESLINT_PLUGIN": "true",
+      "CI": "false"
+    }
+  },
   "functions": {
     "api/index.py": {
       "maxDuration": 30

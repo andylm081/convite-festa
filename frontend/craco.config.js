@@ -38,6 +38,14 @@ let webpackConfig = {
     },
     configure: (webpackConfig) => {
 
+      // Remove ForkTsCheckerWebpackPlugin em produção — incompatível com Node 20+
+      // (ajv-keywords interno do plugin quebra no Node 20)
+      if (!isDevServer) {
+        webpackConfig.plugins = webpackConfig.plugins.filter(
+          (p) => p && p.constructor && p.constructor.name !== 'ForkTsCheckerWebpackPlugin'
+        );
+      }
+
       // Add ignored patterns to reduce watched directories
         webpackConfig.watchOptions = {
           ...webpackConfig.watchOptions,

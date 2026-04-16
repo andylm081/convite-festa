@@ -25,7 +25,11 @@ from pydantic import BaseModel
 SECRET_KEY = os.environ.get("SECRET_KEY", "convite-copa-secret-2026")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
-DATABASE_URL = os.environ.get("POSTGRES_URL") or os.environ.get("POSTGRES_URL_NON_POOLING")
+DATABASE_URL = os.environ.get("POSTGRES_URL") or os.environ.get("POSTGRES_URL_NON_POOLING") or os.environ.get("DATABASE_URL")
+
+# Fix postgres:// → postgresql:// (Neon, Supabase e outros enviam nesse formato)
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 BLOB_TOKEN = os.environ.get("BLOB_READ_WRITE_TOKEN", "")
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://seu-app.vercel.app")
 
@@ -44,10 +48,9 @@ app.add_middleware(
 # ─────────────────────────────── DB ───────────────────────────────────
 
 def get_conn():
-    """Cria conexão PostgreSQL. Vercel Postgres fornece POSTGRES_URL."""
     if not DATABASE_URL:
-        raise HTTPException(status_code=500, detail="DATABASE_URL não configurado.")
-    conn = psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
+        raise HTTPException(status_code=500, detail="POSTGRES_URL não configurado.")
+    conn = psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor, sslmode="require")
     conn.autocommit = False
     return conn
 

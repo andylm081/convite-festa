@@ -10,6 +10,9 @@ import { toast } from 'sonner';
 
 const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
 
+// Sempre gera o link com o domínio atual — funciona em dev, staging e produção
+const getInviteLink = (slug) => slug ? `${window.location.origin}/convite/${slug}` : '';
+
 const STATUS_CONFIG = {
   pending: { label: 'Pendente', classes: 'badge-pending', icon: Clock },
   confirmed: { label: 'Confirmado', classes: 'badge-confirmed', icon: CheckCircle },
@@ -186,7 +189,7 @@ export default function AdminGuests() {
 
   const copyLink = async (guest) => {
     try {
-      await navigator.clipboard.writeText(guest.invite_link);
+      await navigator.clipboard.writeText(getInviteLink(guest.slug));
       setCopiedId(guest.id);
       toast.success('Link copiado!');
       setTimeout(() => setCopiedId(null), 2000);
@@ -325,7 +328,7 @@ export default function AdminGuests() {
                           {copiedId === guest.id ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
                         </button>
                         <a
-                          href={`https://wa.me/?text=${encodeURIComponent(`Olá ${guest.full_name}! Você foi convocado para a festa de Anderson e Arthur 🎉\nConfirme sua presença: ${guest.invite_link}`)}`}
+                          href={`https://wa.me/?text=${encodeURIComponent(`Olá ${guest.full_name}! Você foi convocado para a festa de Anderson e Arthur 🎉\nConfirme sua presença: ${getInviteLink(guest.slug)}`)}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           title="Enviar via WhatsApp"
@@ -336,7 +339,7 @@ export default function AdminGuests() {
                           </svg>
                         </a>
                         <a
-                          href={guest.invite_link}
+                          href={getInviteLink(guest.slug)}
                           target="_blank"
                           rel="noopener noreferrer"
                           title="Abrir link do convite"

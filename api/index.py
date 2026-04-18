@@ -55,16 +55,31 @@ app.add_middleware(
 @contextmanager
 def db():
     """
-    Abre uma conexão, executa, e SEMPRE fecha ao final.
-    Garante que o Neon não esgote as conexões disponíveis.
+    Abre conexão com retry automático (Neon suspende após inatividade e precisa acordar).
+    Sempre fecha a conexão ao final — garante que o pool não esgote.
     """
     if not DATABASE_URL:
         raise HTTPException(500, "POSTGRES_URL não configurado no Vercel.")
-    conn = psycopg2.connect(
-        DATABASE_URL,
-        cursor_factory=psycopg2.extras.RealDictCursor,
-        connect_timeout=10,   # timeout para Neon acordar
-    )
+
+    conn = None
+    last_err = None
+    for attempt in range(3):          # tenta até 3 vezes
+        try:
+            conn = psycopg2.connect(
+                DATABASE_URL,
+                cursor_factory=psycopg2.extras.RealDictCursor,
+                connect_timeout=15,   # tempo para Neon acordar
+            )
+            break
+        except Exception as e:
+            last_err = e
+            if attempt < 2:
+                import time
+                time.sleep(2)         # espera 2s antes de tentar novamente
+
+    if conn is None:
+        raise HTTPException(500, f"Banco indisponível. Tente novamente em alguns segundos. ({str(last_err)[:100]})")
+
     try:
         yield conn
         conn.commit()
@@ -75,7 +90,7 @@ def db():
         conn.rollback()
         raise HTTPException(500, f"Erro no banco: {str(e)[:200]}")
     finally:
-        conn.close()   # SEMPRE fecha — devolve ao pool do Neon
+        conn.close()
 
 # ──────────────────────────── HELPERS ────────────────────────────────────
 

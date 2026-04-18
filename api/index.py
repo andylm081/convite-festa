@@ -3,6 +3,7 @@ FastAPI – Vercel Serverless Functions + PostgreSQL externo (Neon / Supabase)
 Todas as rotas /api/* chegam aqui.
 """
 import os, re, uuid, unicodedata, csv, io
+from contextlib import contextmanager
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -21,22 +22,18 @@ from pydantic import BaseModel
 
 SECRET_KEY   = os.environ.get("SECRET_KEY", "convite-secret-2026")
 ALGORITHM    = "HS256"
-TOKEN_EXP    = 60 * 24  # minutos
+TOKEN_EXP    = 60 * 24
 BLOB_TOKEN   = os.environ.get("BLOB_READ_WRITE_TOKEN", "")
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://seu-app.vercel.app")
 
-# Suporta POSTGRES_URL, DATABASE_URL, POSTGRES_URL_NON_POOLING
 _db_url = (
     os.environ.get("POSTGRES_URL")
     or os.environ.get("DATABASE_URL")
     or os.environ.get("POSTGRES_URL_NON_POOLING")
     or ""
 )
-# postgres:// → postgresql:// (psycopg2 exige esse prefixo)
 if _db_url.startswith("postgres://"):
     _db_url = "postgresql://" + _db_url[len("postgres://"):]
-
-# Garante sslmode=require (necessário p/ Neon/Supabase)
 if _db_url and "sslmode=" not in _db_url:
     sep = "&" if "?" in _db_url else "?"
     _db_url = _db_url + sep + "sslmode=require"
@@ -53,28 +50,82 @@ app.add_middleware(
     allow_methods=["*"], allow_headers=["*"],
 )
 
-# ──────────────────────────── DB ────────────────────────────────────────
+# ──────────────────────────── DB (context manager — sempre fecha) ────────
 
-def get_conn():
+@contextmanager
+def db():
+    """
+    Abre uma conexão, executa, e SEMPRE fecha ao final.
+    Garante que o Neon não esgote as conexões disponíveis.
+    """
     if not DATABASE_URL:
-        raise HTTPException(500, "POSTGRES_URL não configurado nas variáveis de ambiente do Vercel.")
-    return psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
+        raise HTTPException(500, "POSTGRES_URL não configurado no Vercel.")
+    conn = psycopg2.connect(
+        DATABASE_URL,
+        cursor_factory=psycopg2.extras.RealDictCursor,
+        connect_timeout=10,   # timeout para Neon acordar
+    )
+    try:
+        yield conn
+        conn.commit()
+    except HTTPException:
+        conn.rollback()
+        raise
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(500, f"Erro no banco: {str(e)[:200]}")
+    finally:
+        conn.close()   # SEMPRE fecha — devolve ao pool do Neon
+
+# ──────────────────────────── HELPERS ────────────────────────────────────
 
 def to_dict(row) -> dict:
-    """Converte row do psycopg2 para dict serializável (UUID → str, datetime → ISO)."""
     if row is None:
         return None
     d = {}
     for k, v in dict(row).items():
         if isinstance(v, datetime):
             d[k] = v.isoformat()
-        elif hasattr(v, "hex") and callable(getattr(v, "hex", None)) and not isinstance(v, bytes):
-            d[k] = str(v)   # uuid.UUID → "xxxxxxxx-xxxx-..."
+        elif hasattr(v, "int") and type(v).__name__ == "UUID":
+            d[k] = str(v)
         else:
             d[k] = v
     return d
 
-# ──────────────────────────── MODELS ────────────────────────────────────
+def slugify(text: str) -> str:
+    text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode()
+    text = re.sub(r"[^a-z0-9\s-]", "", text.lower())
+    return re.sub(r"[\s-]+", "-", text).strip("-")
+
+def gen_slug(name: str) -> str:
+    return f"{slugify(name)}-{uuid.uuid4().hex[:6]}"
+
+def invite_link(slug: str) -> str:
+    return f"{FRONTEND_URL}/convite/{slug}"
+
+def verify_pw(plain, hashed): return pwd_ctx.verify(plain, hashed)
+
+def make_token(email: str) -> str:
+    exp = datetime.utcnow() + timedelta(minutes=TOKEN_EXP)
+    return jwt.encode({"sub": email, "exp": exp}, SECRET_KEY, algorithm=ALGORITHM)
+
+def get_admin(token: str = Depends(oauth2)):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email = payload.get("sub")
+        if not email:
+            raise HTTPException(401, "Token inválido")
+    except JWTError:
+        raise HTTPException(401, "Token inválido ou expirado")
+    with db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT email FROM admin_users WHERE email = %s", (email,))
+            row = cur.fetchone()
+    if not row:
+        raise HTTPException(401, "Admin não encontrado")
+    return dict(row)
+
+# ──────────────────────────── MODELS ─────────────────────────────────────
 
 class AdminLogin(BaseModel):
     email: str
@@ -120,49 +171,13 @@ class RSVPRequest(BaseModel):
     slug: Optional[str] = None
     response_name: Optional[str] = None
 
-# ──────────────────────────── HELPERS ────────────────────────────────────
-
-def slugify(text: str) -> str:
-    text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode()
-    text = re.sub(r"[^a-z0-9\s-]", "", text.lower())
-    return re.sub(r"[\s-]+", "-", text).strip("-")
-
-def gen_slug(name: str) -> str:
-    return f"{slugify(name)}-{uuid.uuid4().hex[:6]}"
-
-def invite_link(slug: str) -> str:
-    return f"{FRONTEND_URL}/convite/{slug}"
-
-def verify_pw(plain, hashed): return pwd_ctx.verify(plain, hashed)
-def hash_pw(pw): return pwd_ctx.hash(pw)
-
-def make_token(email: str) -> str:
-    exp = datetime.utcnow() + timedelta(minutes=TOKEN_EXP)
-    return jwt.encode({"sub": email, "exp": exp}, SECRET_KEY, algorithm=ALGORITHM)
-
-def get_admin(token: str = Depends(oauth2)):
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email = payload.get("sub")
-        if not email:
-            raise HTTPException(401, "Token inválido")
-    except JWTError:
-        raise HTTPException(401, "Token inválido")
-    with get_conn() as conn:
-        with conn.cursor() as cur:
-            cur.execute("SELECT * FROM admin_users WHERE email = %s", (email,))
-            row = cur.fetchone()
-    if not row:
-        raise HTTPException(401, "Admin não encontrado")
-    return to_dict(row)
-
 # ──────────────────────────── AUTH ────────────────────────────────────────
 
 @app.post("/api/auth/login")
 def login(data: AdminLogin):
-    with get_conn() as conn:
+    with db() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT * FROM admin_users WHERE email = %s", (data.email,))
+            cur.execute("SELECT hashed_password FROM admin_users WHERE email = %s", (data.email,))
             row = cur.fetchone()
     if not row or not verify_pw(data.password, row["hashed_password"]):
         raise HTTPException(401, "Email ou senha incorretos")
@@ -176,7 +191,7 @@ def get_me(admin=Depends(get_admin)):
 
 @app.get("/api/event-settings")
 def get_settings():
-    with get_conn() as conn:
+    with db() as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT * FROM event_settings WHERE is_active = TRUE LIMIT 1")
             row = cur.fetchone()
@@ -191,31 +206,31 @@ def put_settings(data: EventSettings, _=Depends(get_admin)):
         return get_settings()
     fields["updated_at"] = datetime.utcnow()
     set_sql = ", ".join(f"{k} = %s" for k in fields)
-    with get_conn() as conn:
+    with db() as conn:
         with conn.cursor() as cur:
             cur.execute(f"UPDATE event_settings SET {set_sql} WHERE is_active = TRUE", list(fields.values()))
-            conn.commit()
     return get_settings()
 
 # ──────────────────────────── GUESTS ──────────────────────────────────────
 
 @app.get("/api/guests/stats")
 def guest_stats(_=Depends(get_admin)):
-    with get_conn() as conn:
+    with db() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT COUNT(*) total FROM guests")
-            total = cur.fetchone()["total"]
-            cur.execute("SELECT COUNT(*) n FROM guests WHERE status='confirmed'")
-            confirmed = cur.fetchone()["n"]
-            cur.execute("SELECT COUNT(*) n FROM guests WHERE status='cancelled'")
-            cancelled = cur.fetchone()["n"]
-            cur.execute("SELECT COUNT(*) n FROM guests WHERE status='pending'")
-            pending = cur.fetchone()["n"]
-    return {"total": total, "confirmed": confirmed, "cancelled": cancelled, "pending": pending}
+            cur.execute("""
+                SELECT
+                  COUNT(*) total,
+                  COUNT(*) FILTER (WHERE status='confirmed') confirmed,
+                  COUNT(*) FILTER (WHERE status='cancelled') cancelled,
+                  COUNT(*) FILTER (WHERE status='pending') pending
+                FROM guests
+            """)
+            row = dict(cur.fetchone())
+    return row
 
 @app.get("/api/guests/export")
 def export_csv(_=Depends(get_admin)):
-    with get_conn() as conn:
+    with db() as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT * FROM guests ORDER BY created_at DESC")
             rows = [to_dict(r) for r in cur.fetchall()]
@@ -224,7 +239,7 @@ def export_csv(_=Depends(get_admin)):
     w = csv.writer(out)
     w.writerow(["Nome","Apelido","Telefone","Status","Resposta","Data resposta","Origem","Link","Obs","Cadastro"])
     labels = {"pending":"Pendente","confirmed":"Confirmado","cancelled":"Cancelado"}
-    def fmt(v): return v[:16].replace("T"," ") if v else ""
+    def fmt(v): return str(v)[:16].replace("T"," ") if v else ""
     for g in rows:
         w.writerow([g.get("full_name",""), g.get("nickname",""), g.get("phone",""),
                     labels.get(g.get("status","pending"),"Pendente"), g.get("response_name",""),
@@ -248,31 +263,30 @@ def list_guests(search: Optional[str] = None, status_filter: Optional[str] = Non
         conds.append("status = %s")
         vals.append(status_filter)
     where = ("WHERE " + " AND ".join(conds)) if conds else ""
-    with get_conn() as conn:
+    with db() as conn:
         with conn.cursor() as cur:
             cur.execute(f"SELECT * FROM guests {where} ORDER BY created_at DESC", vals)
             return [to_dict(r) for r in cur.fetchall()]
 
 @app.post("/api/guests", status_code=201)
 def create_guest(data: GuestCreate, _=Depends(get_admin)):
-    gid   = str(uuid.uuid4())
-    slug  = gen_slug(data.full_name)
-    link  = invite_link(slug)
-    with get_conn() as conn:
+    gid  = str(uuid.uuid4())
+    slug = gen_slug(data.full_name)
+    link = invite_link(slug)
+    with db() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """INSERT INTO guests
                    (id, full_name, nickname, phone, notes, slug, invite_link, status, created_at, updated_at)
                    VALUES (%s,%s,%s,%s,%s,%s,%s,'pending',NOW(),NOW()) RETURNING *""",
-                (gid, data.full_name, data.nickname or "", data.phone or "", data.notes or "", slug, link),
+                (gid, data.full_name, data.nickname or "", data.phone or "",
+                 data.notes or "", slug, link),
             )
-            row = to_dict(cur.fetchone())
-            conn.commit()
-    return row
+            return to_dict(cur.fetchone())
 
 @app.get("/api/guests/{guest_id}")
 def get_guest(guest_id: str, _=Depends(get_admin)):
-    with get_conn() as conn:
+    with db() as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT * FROM guests WHERE id = %s", (guest_id,))
             row = cur.fetchone()
@@ -287,29 +301,27 @@ def update_guest(guest_id: str, data: GuestUpdate, _=Depends(get_admin)):
         return get_guest(guest_id)
     fields["updated_at"] = datetime.utcnow()
     set_sql = ", ".join(f"{k} = %s" for k in fields)
-    with get_conn() as conn:
+    with db() as conn:
         with conn.cursor() as cur:
             cur.execute(f"UPDATE guests SET {set_sql} WHERE id = %s RETURNING *",
                         list(fields.values()) + [guest_id])
             row = cur.fetchone()
-            conn.commit()
     if not row:
         raise HTTPException(404, "Convidado não encontrado")
     return to_dict(row)
 
 @app.delete("/api/guests/{guest_id}")
 def delete_guest(guest_id: str, _=Depends(get_admin)):
-    with get_conn() as conn:
+    with db() as conn:
         with conn.cursor() as cur:
             cur.execute("DELETE FROM guests WHERE id = %s", (guest_id,))
-            conn.commit()
     return {"message": "Convidado removido"}
 
 # ──────────────────────────── RSVP ────────────────────────────────────────
 
 @app.get("/api/rsvp/guest/{slug}")
 def rsvp_by_slug(slug: str):
-    with get_conn() as conn:
+    with db() as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT * FROM guests WHERE slug = %s", (slug,))
             row = cur.fetchone()
@@ -318,10 +330,10 @@ def rsvp_by_slug(slug: str):
     return to_dict(row)
 
 def _do_rsvp(data: RSVPRequest, action: str):
-    with get_conn() as conn:
+    with db() as conn:
         if data.slug:
             with conn.cursor() as cur:
-                cur.execute("SELECT * FROM guests WHERE slug = %s", (data.slug,))
+                cur.execute("SELECT id, full_name FROM guests WHERE slug = %s", (data.slug,))
                 guest = cur.fetchone()
             if not guest:
                 raise HTTPException(404, "Convidado não encontrado")
@@ -348,14 +360,13 @@ def _do_rsvp(data: RSVPRequest, action: str):
                     (guest_id, rname, action, rname, source),
                 )
 
-        log_id = str(uuid.uuid4())
         with conn.cursor() as cur:
             cur.execute(
-                """INSERT INTO rsvp_logs (id, guest_id, guest_name, action, response_name, source, created_at)
+                """INSERT INTO rsvp_logs
+                   (id, guest_id, guest_name, action, response_name, source, created_at)
                    VALUES (%s,%s,%s,%s,%s,%s,NOW())""",
-                (log_id, guest_id, rname, action, rname, source),
+                (str(uuid.uuid4()), guest_id, rname, action, rname, source),
             )
-        conn.commit()
 
         with conn.cursor() as cur:
             cur.execute("SELECT * FROM event_settings WHERE is_active=TRUE LIMIT 1")
@@ -375,7 +386,7 @@ def cancel(data: RSVPRequest): return _do_rsvp(data, "cancelled")
 
 @app.get("/api/rsvp-logs")
 def rsvp_logs(_=Depends(get_admin)):
-    with get_conn() as conn:
+    with db() as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT * FROM rsvp_logs ORDER BY created_at DESC LIMIT 500")
             return [to_dict(r) for r in cur.fetchall()]
@@ -391,28 +402,18 @@ def upload_audio(file: UploadFile, _=Depends(get_admin)):
     content = file.file.read()
     if len(content) > 10 * 1024 * 1024:
         raise HTTPException(400, "Arquivo muito grande. Limite: 10MB")
-
     if not BLOB_TOKEN:
-        raise HTTPException(500,
-            "Upload de áudio requer BLOB_READ_WRITE_TOKEN. "
-            "Configure o Vercel Blob no painel Vercel → Storage → Blob.")
-
-    mime = {".mp3":"audio/mpeg",".wav":"audio/wav",".ogg":"audio/ogg",".m4a":"audio/mp4"}.get(ext,"audio/wav")
+        raise HTTPException(500, "Configure o Vercel Blob (BLOB_READ_WRITE_TOKEN)")
+    mime  = {".mp3":"audio/mpeg",".wav":"audio/wav",".ogg":"audio/ogg",".m4a":"audio/mp4"}.get(ext,"audio/wav")
     fname = f"audio-{uuid.uuid4().hex[:8]}{ext}"
-
-    resp = http_req.put(
+    resp  = http_req.put(
         f"https://blob.vercel-storage.com/{fname}",
         data=content,
-        headers={
-            "Authorization": f"Bearer {BLOB_TOKEN}",
-            "Content-Type":  mime,
-            "x-vercel-blob-access": "public",
-        },
+        headers={"Authorization": f"Bearer {BLOB_TOKEN}", "Content-Type": mime, "x-vercel-blob-access": "public"},
         timeout=30,
     )
     if resp.status_code not in (200, 201):
         raise HTTPException(500, f"Erro Vercel Blob: {resp.text[:200]}")
-
     return {"url": resp.json().get("url",""), "message": "Áudio enviado com sucesso!"}
 
 # ──────────────────────────── HEALTH ──────────────────────────────────────
@@ -420,12 +421,12 @@ def upload_audio(file: UploadFile, _=Depends(get_admin)):
 @app.get("/api/health")
 def health():
     try:
-        with get_conn() as conn:
+        with db() as conn:
             with conn.cursor() as cur:
                 cur.execute("SELECT 1")
         return {"status": "ok", "db": "connected"}
     except Exception as e:
         return {"status": "ok", "db": f"error: {str(e)[:100]}"}
 
-# Vercel precisa disso para reconhecer o app FastAPI como handler ASGI
+# Vercel ASGI handler
 handler = app

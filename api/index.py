@@ -55,30 +55,44 @@ app.add_middleware(
 @contextmanager
 def db():
     """
-    Abre conexão com retry automático (Neon suspende após inatividade e precisa acordar).
-    Sempre fecha a conexão ao final — garante que o pool não esgote.
+    Conexão com Supabase/Neon com parsing manual da URL.
+    Decodifica %5B, %5D e outros chars especiais na senha explicitamente
+    (psycopg2 às vezes falha ao parsear URIs com password URL-encoded).
+    Retry automático para quando o banco acorda da suspensão.
     """
     if not DATABASE_URL:
         raise HTTPException(500, "POSTGRES_URL não configurado no Vercel.")
 
+    # Parse manual — garante decodificação correta da senha
+    from urllib.parse import urlparse, unquote
+    p = urlparse(DATABASE_URL)
+    conn_kwargs = dict(
+        host            = p.hostname,
+        port            = p.port or 5432,
+        user            = unquote(p.username or ""),
+        password        = unquote(p.password or ""),
+        dbname          = p.path.lstrip("/"),
+        sslmode         = "require",
+        connect_timeout = 10,
+    )
+
     conn = None
     last_err = None
-    for attempt in range(3):          # tenta até 3 vezes
+    for attempt in range(3):
         try:
             conn = psycopg2.connect(
-                DATABASE_URL,
                 cursor_factory=psycopg2.extras.RealDictCursor,
-                connect_timeout=15,   # tempo para Neon acordar
+                **conn_kwargs,
             )
             break
         except Exception as e:
             last_err = e
             if attempt < 2:
                 import time
-                time.sleep(2)         # espera 2s antes de tentar novamente
+                time.sleep(2)
 
     if conn is None:
-        raise HTTPException(500, f"Banco indisponível. Tente novamente em alguns segundos. ({str(last_err)[:100]})")
+        raise HTTPException(503, f"Banco indisponível. Tente novamente. ({str(last_err)[:120]})")
 
     try:
         yield conn

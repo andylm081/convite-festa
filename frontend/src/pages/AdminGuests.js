@@ -300,6 +300,9 @@ export default function AdminGuests() {
                   <tr key={guest.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors">
                     <td className="px-4 py-3">
                       <p className="text-sm font-medium text-gray-800">{guest.full_name}</p>
+                      {guest.nickname && (
+                        <p className="text-xs text-gray-500 mt-0.5">{guest.nickname}</p>
+                      )}
                     </td>
                     <td className="px-4 py-3 hidden md:table-cell">
                       <p className="text-sm text-gray-500">{guest.nickname || '-'}</p>

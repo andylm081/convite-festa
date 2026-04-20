@@ -241,3 +241,7 @@ credentials.json
 *.pem
 *.key
 .credentials
+
+# Exceção — build do frontend commitado para Vercel
+!frontend/build
+!frontend/build/**

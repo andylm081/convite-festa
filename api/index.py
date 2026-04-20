@@ -442,7 +442,7 @@ def upload_audio(file: UploadFile, _=Depends(get_admin)):
     resp  = http_req.put(
         f"https://blob.vercel-storage.com/{fname}",
         data=content,
-        headers={"Authorization": f"Bearer {BLOB_TOKEN}", "Content-Type": mime, "x-vercel-blob-access": "public"},
+        headers={"Authorization": f"Bearer {BLOB_TOKEN}", "Content-Type": mime},
         timeout=30,
     )
     if resp.status_code not in (200, 201):

@@ -20,7 +20,7 @@ from pydantic import BaseModel
 
 # ──────────────────────────── CONFIG ────────────────────────────────────
 
-SECRET_KEY   = os.environ.get("SECRET_KEY", "Copa2026")
+SECRET_KEY   = os.environ.get("SECRET_KEY", "festa2026")
 ALGORITHM    = "HS256"
 TOKEN_EXP    = 60 * 24
 BLOB_TOKEN   = os.environ.get("BLOB_READ_WRITE_TOKEN", "")

@@ -220,13 +220,17 @@ def get_me(admin=Depends(get_admin)):
 
 @app.get("/api/event-settings")
 def get_settings():
+    from fastapi.responses import JSONResponse
     with db() as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT * FROM event_settings WHERE is_active = TRUE LIMIT 1")
             row = cur.fetchone()
     if not row:
         raise HTTPException(404, "Configurações não encontradas")
-    return to_dict(row)
+    return JSONResponse(
+        content=to_dict(row),
+        headers={"Cache-Control": "no-store, no-cache, must-revalidate, max-age=0"}
+    )
 
 @app.put("/api/event-settings")
 def put_settings(data: EventSettings, _=Depends(get_admin)):

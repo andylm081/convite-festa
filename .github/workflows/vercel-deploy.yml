@@ -6,23 +6,20 @@ on:
 
 jobs:
   deploy:
-    # Só roda quando o push NÃO veio do próprio Actions (evita loop)
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      - name: Configurar git como dono do repo
+      - name: Configurar git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Criar commit vazio para disparar deploy no Vercel
+      - name: Trigger deploy
         run: |
-          git commit --allow-empty -m "ci: trigger vercel deploy [skip actions]"
+          git commit --allow-empty -m "ci: trigger vercel deploy"
           git push

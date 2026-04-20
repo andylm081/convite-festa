@@ -456,10 +456,12 @@ def health():
     try:
         with db() as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT 1")
-        return {"status": "ok", "db": "connected"}
+                cur.execute("SELECT email, LEFT(hashed_password,10) as h FROM admin_users LIMIT 1")
+                row = cur.fetchone()
+        host = __import__('urllib.parse', fromlist=['urlparse']).urlparse(DATABASE_URL).hostname or "?"
+        return {"status": "ok", "db": "connected", "host": host[:30], "admin": dict(row) if row else None}
     except Exception as e:
-        return {"status": "ok", "db": f"error: {str(e)[:100]}"}
+        return {"status": "error", "detail": str(e)[:200]}
 
 # Vercel ASGI handler
 handler = app

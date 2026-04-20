@@ -168,7 +168,7 @@ export default function AdminSettings() {
   const fetchSettings = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_BASE}/api/event-settings`);
+      const res = await axios.get(`${API_BASE}/api/event-settings?_=${Date.now()}`);
       setForm(res.data);
     } catch (e) {
       toast.error('Erro ao carregar configurações.');

@@ -114,7 +114,7 @@ export default function InvitePage() {
   const [sessionResponseName, setSessionResponseName] = useState(null);
 
   useEffect(() => {
-    axios.get(`${API_BASE}/api/event-settings`)
+    axios.get(`${API_BASE}/api/event-settings?_=${Date.now()}`)
       .then(res => setSettings(res.data))
       .catch(() => {})
       .finally(() => setLoadingSettings(false));
@@ -141,7 +141,7 @@ export default function InvitePage() {
 
   const handleOpenModal = (type) => {
     // Re-fetch latest settings so audio URLs are always up to date
-    axios.get(`${API_BASE}/api/event-settings`)
+    axios.get(`${API_BASE}/api/event-settings?_=${Date.now()}`)
       .then(res => setSettings(res.data))
       .catch(() => {});
     setModal(type);

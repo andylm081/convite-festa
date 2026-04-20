@@ -65,7 +65,7 @@ export default function AdminDashboard() {
       const [statsRes, logsRes, settingsRes] = await Promise.all([
         axios.get(`${API_BASE}/api/guests/stats`),
         axios.get(`${API_BASE}/api/rsvp-logs`),
-        axios.get(`${API_BASE}/api/event-settings`),
+        axios.get(`${API_BASE}/api/event-settings?_=${Date.now()}`),
       ]);
       setStats(statsRes.data);
       setLogs(logsRes.data);
